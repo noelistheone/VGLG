@@ -1,108 +1,128 @@
-# VGLG-TSF: Variate-Gated Local-Global Mixer for Time Series Forecasting
+# MetaTSF: A Unified TokenMixer Framework for Time-Series Forecasting
 
-Course project skeleton implementing a unified backbone-agnostic time-series mixer
-(VGLG) with MLP / CNN / Transformer wrappers, evaluated against standard baselines
-(DLinear, TimeMixer, iTransformer, PatchTST, ModernTCN) and Chronos-Bolt distillation.
+Course project implementing a **MetaFormer-style** time-series forecasting
+framework where the only variable across our four model variants is the
+TokenMixer module. We compare against eight strong baselines and add
+Chronos-Bolt distillation as a knowledge-transfer ablation.
+
+> **Core claim**: token mixing can be cleanly separated from the backbone.
+> We propose a **VGLG (Variate-Gated Local-Global) TokenMixer** and compare
+> it head-to-head against MLP / Conv / Attn mixers under a fixed backbone.
 
 ## Quick start
 
 ```bash
-# 1. Activate env (created by conda create -n vglg python=3.10)
 conda activate vglg
 
-# 2. Verify environment
-python scripts/check_env.py
+python scripts/check_env.py           # verify GPU / PyTorch / Chronos
+bash   scripts/download_data.sh       # ~355MB, writes data/
+pytest tests/ -v                      # 29 unit tests
 
-# 3. Download datasets (writes into data/, ~355MB)
-bash scripts/download_data.sh
+# Train MetaTSF-VGLG on ETTh1, horizon 96, 10 epochs
+python -m src.train.trainer model=metatsf_vglg data=etth1 train.train_epochs=10
 
-# 4. Sanity-check data + model shapes
-pytest tests/ -v
-
-# 5. Train any (model x dataset x horizon) combo
-python -m src.train.trainer model=vglg_mlp data=etth1 train.pred_len=96 train.train_epochs=10
-
-# 6. Run the full smoke test (every model, 2 epochs each)
-bash scripts/smoke_test.sh
+# Verify every (model x dataset) combo runs end-to-end
+python scripts/verify_all.py          # 12 models x 7 datasets x h=96
 ```
 
 ## Models
 
-| Name             | Type        | File                                      | Source        |
-|------------------|-------------|-------------------------------------------|---------------|
-| `dlinear`        | linear      | `src/models/baselines/dlinear.py`         | AAAI 2023     |
-| `timemixer`      | MLP         | `src/models/baselines/timemixer.py`       | ICLR 2024     |
-| `itransformer`   | Transformer | `src/models/baselines/itransformer.py`    | ICLR 2024 Spt |
-| `patchtst`       | Transformer | `src/models/baselines/patchtst.py`        | ICLR 2023     |
-| `moderntcn`      | CNN         | `src/models/baselines/moderntcn.py`       | ICLR 2024 Spt |
-| `vglg_mlp`       | MLP (ours)  | `src/models/vglg/mlp_wrapper.py`          | —             |
-| `vglg_cnn`       | CNN (ours)  | `src/models/vglg/cnn_wrapper.py`          | —             |
-| `vglg_transformer` | Transformer (ours) | `src/models/vglg/tf_wrapper.py`  | —             |
+12 registered models across 6 families:
 
-All baselines are self-contained ports from THUML/Time-Series-Library
-(and the official ModernTCN repo for ModernTCN). The shared transformer
-encoder lives in `src/models/layers/transformer.py`.
+| Name              | Family             | File                                         |
+|-------------------|--------------------|----------------------------------------------|
+| `dlinear`         | Linear (no mixer)  | `src/models/baselines/dlinear.py`            |
+| `lstm`            | RNN (classic)      | `src/models/baselines/lstm.py`               |
+| `gru`             | RNN (classic)      | `src/models/baselines/gru.py`                |
+| `segrnn`          | Modern RNN         | `src/models/baselines/segrnn.py`             |
+| `timemixer`       | MLP (multi-scale)  | `src/models/baselines/timemixer.py`          |
+| `moderntcn`       | CNN (large kernel) | `src/models/baselines/moderntcn.py`          |
+| `patchtst`        | Transformer (patch) | `src/models/baselines/patchtst.py`          |
+| `itransformer`    | Transformer (inv.) | `src/models/baselines/itransformer.py`       |
+| `metatsf_mlp`     | **Ours / MLP mixer**  | `src/models/metatsf/` + `mixers/mlp_mixer.py`     |
+| `metatsf_conv`    | **Ours / Conv mixer** | `src/models/metatsf/` + `mixers/conv_mixer.py`    |
+| `metatsf_attn`    | **Ours / Attn mixer** | `src/models/metatsf/` + `mixers/attn_mixer.py`    |
+| `metatsf_vglg`    | **Ours / VGLG mixer** (main contribution) | `src/models/metatsf/` + `mixers/vglg_mixer.py` |
 
-### Smoke-test results (ETTh1, horizon=96, 1 epoch, batch=32, no tuning)
+The four `metatsf_*` variants share **identical** backbone, depth, width,
+optimiser, and training schedule — the only difference is the TokenMixer
+module. This is what makes the MLP / CNN / Transformer / Ours comparison
+honest.
 
-| Model              | Params  | Test MSE | Test MAE |
-|--------------------|--------:|---------:|---------:|
-| dlinear            | 19k     | 0.527    | 0.496    |
-| timemixer          | 75k     | 0.468    | 0.457    |
-| itransformer       | 842k    | 0.400    | 0.412    |
-| patchtst           | 547k    | 0.401    | 0.404    |
-| moderntcn          | 213k    | 0.397    | 0.407    |
-| vglg_mlp           | 30k     | 0.457    | 0.453    |
-| vglg_cnn           | 30k     | 0.457    | 0.453    |
-| vglg_transformer   | 295k    | 0.417    | 0.425    |
+## MetaTSF design
 
-These are 1-epoch numbers, not tuned — they only confirm the pipeline runs
-end-to-end. Full Week 1-2 reproductions require 10+ epochs and the published
-hyperparameters (e.g. PatchTST uses input_len=336, not 96).
+```
+MetaTSFBlock = LayerNorm -> TokenMixer(B, L, N) -> LayerNorm -> ChannelMLP
+```
+
+Each TokenMixer must obey one signature:
+
+```python
+class TokenMixer(nn.Module):
+    def __init__(self, seq_len: int, n_vars: int, **kwargs): ...
+    def forward(self, x: Tensor) -> Tensor:    # (B, L, N) -> (B, L, N)
+```
+
+To add a fifth mixer:
+1. Drop a class into `src/models/metatsf/mixers/<name>_mixer.py`
+2. Register it in `src/models/metatsf/mixers/__init__.py:MIXER_REGISTRY`
+3. Add `configs/model/metatsf_<name>.yaml` with `mixer.type: <name>`
+
+That's it — the backbone, trainer, and tests pick it up automatically.
 
 ## Datasets
 
-Downloaded from THUML/Time-Series-Library bundle into `data/`:
+Standard TSlib bundle plus a custom FastF1-derived dataset, downloaded into `data/`:
 
-| Dataset        | Variates | Frequency | Split           |
-|----------------|---------:|-----------|-----------------|
-| ETTh1, ETTh2   | 7        | 1 hour    | 12/4/4 months   |
-| ETTm1, ETTm2   | 7        | 15 min    | 12/4/4 months   |
-| Weather        | 21       | 10 min    | 70/10/20        |
-| Electricity    | 321      | 1 hour    | 70/10/20        |
-| Traffic        | 862      | 1 hour    | 70/10/20        |
+| Dataset          | Variates | Frequency | Split           | Source                                    |
+|------------------|---------:|-----------|-----------------|-------------------------------------------|
+| ETTh1, ETTh2     | 7        | 1 hour    | 12/4/4 months   | `scripts/download_data.sh`                |
+| ETTm1, ETTm2     | 7        | 15 min    | 12/4/4 months   | `scripts/download_data.sh`                |
+| Weather          | 21       | 10 min    | 70/10/20        | `scripts/download_data.sh`                |
+| Electricity      | 321      | 1 hour    | 70/10/20        | `scripts/download_data.sh`                |
+| Traffic          | 862      | 1 hour    | 70/10/20        | `scripts/download_data.sh`                |
+| **f1weather**    | 7        | 1 min     | 70/10/20        | `python scripts/build_f1_weather.py --year 2023 2024` |
+
+`f1weather` aggregates per-session weather telemetry (AirTemp, Humidity,
+Pressure, Rainfall, TrackTemp, WindDirection, WindSpeed) from every Formula 1
+session of one or more seasons via the [FastF1](https://github.com/theOehrly/Fast-F1)
+API, concatenated along the time axis.
 
 ## Layout
 
 ```
-configs/    Hydra YAML configs for data / model / train
+configs/
+  data/        per-dataset YAML
+  model/       12 model configs (8 baselines + 4 metatsf_*)
+  train/       default + distillation training configs
 src/
-  data/        PyTorch Dataset + DataLoader factory
+  data/        Dataset + DataLoader
   models/
-    baselines/   Baseline reproductions (DLinear, TimeMixer, iTransformer, PatchTST, ModernTCN)
-    vglg/        VGLG block + 3 wrappers (MLP/CNN/Transformer)
-    layers/      Shared layers (RevIN, Transformer encoder)
-  losses/      Distillation losses (trend/freq/diff KD)
-  utils/       Metrics, seeding, early stopping
-  train/       Hydra-driven training entry point
-scripts/    Top-level run scripts (download data, smoke test, batch experiments)
-tests/      Unit tests (data shapes, model forward+backward)
-notebooks/  Exploratory analysis
+    baselines/   8 baseline reproductions
+    metatsf/     unified MetaFormer backbone + mixer registry
+      backbone.py, block.py
+      mixers/    {mlp,conv,attn,vglg}_mixer.py + registry
+    layers/      shared layers (RevIN, transformer encoder)
+  losses/      distillation losses (KD trend / freq / diff)
+  utils/       metrics, seeding, early stopping
+  train/       Hydra-driven trainer with W&B integration
+scripts/    download data, smoke test, verify_all, full sweep
+tests/      29 tests: data shapes + mixer shapes/grads + backbone forward
 ```
 
-## Adding a new model
+## Experiments
 
-1. Drop a class into `src/models/baselines/<name>.py` (or `vglg/`). The
-   class must accept `seq_len`, `pred_len`, `n_vars` as kwargs plus its own
-   hyperparameters, and `forward(x_enc, x_mark_enc=None, x_dec=None,
-   x_mark_dec=None) -> Tensor[B, pred_len, N]`.
-2. Register it in `src/models/builder.py:MODEL_REGISTRY`.
-3. Add a `configs/model/<name>.yaml` with at least `name: <name>` and the
-   model's hyperparameters. Extra keys are tolerated (`**_unused`).
-
-Then `python -m src.train.trainer model=<name> data=etth1` just works.
+Main matrix (Week 5-6): 7 datasets × 4 horizons × 12 models × 3 seeds = **1008 runs**.
+Distillation (Week 7-8): 7 × 4 × 5 configs × 3 seeds = **420 runs**.
+See `VGLG_Project_Roadmap_v2.md` for the week-by-week plan and GPU
+allocation between the local 4090 and the cluster A6000s.
 
 ## Status
 
-Week 0 + Week 1-2 baseline porting complete. Use `bash scripts/smoke_test.sh`
-to verify the pipeline end-to-end.
+Week 0-4 complete:
+- Environment + data + verified pipeline ✓
+- 8 baselines ported and unit-tested ✓
+- MetaTSF backbone + 4 mixers (MLP / Conv / Attn / VGLG) ✓
+- W&B logging integrated ✓
+- 12 models × 8 datasets (7 standard + f1weather) verified runnable end-to-end ✓
+- 30 unit tests passing ✓

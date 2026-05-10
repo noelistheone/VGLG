@@ -4,6 +4,11 @@ Adding a new baseline:
   1. Drop a class into src/models/baselines/<name>.py
   2. Register it in MODEL_REGISTRY below
   3. Add a config at configs/model/<name>.yaml
+
+Adding a new MetaTSF mixer:
+  1. Drop a class into src/models/metatsf/mixers/<name>_mixer.py
+  2. Register it in src/models/metatsf/mixers/__init__.py:MIXER_REGISTRY
+  3. Add a config at configs/model/metatsf_<name>.yaml that sets `mixer.type: <name>`
 """
 from __future__ import annotations
 
@@ -11,21 +16,43 @@ from typing import Any
 
 import torch.nn as nn
 
-from .baselines import DLinear, ModernTCN, PatchTST, TimeMixer, iTransformer
-from .vglg import VGLG_CNN, VGLG_MLP, VGLG_Transformer
+from .baselines import (
+    DLinear,
+    GRUForecaster,
+    LSTMForecaster,
+    ModernTCN,
+    PatchTST,
+    SegRNN,
+    TimeMixer,
+    iTransformer,
+)
+from .metatsf import MetaTSF
 
+# Models that take a flat kwargs interface
 MODEL_REGISTRY: dict[str, type[nn.Module]] = {
-    # baselines (Week 1-2 reproductions)
+    # baselines
     "dlinear": DLinear,
-    "itransformer": iTransformer,
-    "patchtst": PatchTST,
+    "lstm": LSTMForecaster,
+    "gru": GRUForecaster,
+    "segrnn": SegRNN,
     "timemixer": TimeMixer,
     "moderntcn": ModernTCN,
-    # ours
-    "vglg_mlp": VGLG_MLP,
-    "vglg_cnn": VGLG_CNN,
-    "vglg_transformer": VGLG_Transformer,
+    "itransformer": iTransformer,
+    "patchtst": PatchTST,
+    # ours: every metatsf_* config maps to MetaTSF with a different mixer.type
+    "metatsf_mlp": MetaTSF,
+    "metatsf_conv": MetaTSF,
+    "metatsf_attn": MetaTSF,
+    "metatsf_vglg": MetaTSF,
 }
+
+
+def _to_dict(cfg: Any) -> dict:
+    if hasattr(cfg, "items"):
+        return dict(cfg)
+    if hasattr(cfg, "__dict__"):
+        return vars(cfg).copy()
+    raise TypeError(f"Cannot iterate cfg of type {type(cfg)}")
 
 
 def build_model(model_cfg: Any, data_cfg: Any, train_cfg: Any) -> nn.Module:
@@ -37,19 +64,11 @@ def build_model(model_cfg: Any, data_cfg: Any, train_cfg: Any) -> nn.Module:
         )
     cls = MODEL_REGISTRY[name]
 
-    # Common args every model accepts; extras are filtered via **_unused.
     kwargs = dict(
         seq_len=train_cfg.seq_len,
         pred_len=train_cfg.pred_len,
         n_vars=data_cfg.n_vars,
     )
-    # Model-specific hyperparams. Accept DictConfig / dict / SimpleNamespace.
-    if hasattr(model_cfg, "items"):
-        items = model_cfg.items()
-    elif hasattr(model_cfg, "__dict__"):
-        items = vars(model_cfg).items()
-    else:
-        raise TypeError(f"Cannot iterate model_cfg of type {type(model_cfg)}")
-    model_extras = {k: v for k, v in items if k not in ("name", "type")}
-    kwargs.update(model_extras)
+    extras = {k: v for k, v in _to_dict(model_cfg).items() if k not in ("name", "type")}
+    kwargs.update(extras)
     return cls(**kwargs)

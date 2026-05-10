@@ -15,11 +15,16 @@ import numpy as np
 import torch
 import torch.nn as nn
 from omegaconf import DictConfig, OmegaConf
-from torch.optim.lr_scheduler import LambdaLR
 
 from src.data import build_dataloaders
 from src.models import build_model
 from src.utils import EarlyStopping, metric, seed_everything
+
+try:
+    import wandb
+    _HAS_WANDB = True
+except ImportError:  # pragma: no cover
+    _HAS_WANDB = False
 
 
 def _adjust_lr(epoch: int, base_lr: float, scheme: str) -> float:
@@ -69,6 +74,18 @@ def train(cfg: DictConfig) -> dict[str, float]:
     print(OmegaConf.to_yaml(cfg))
     print("=" * 60)
 
+    run_name = cfg.run_name or f"{cfg.data.name}_{cfg.model.name}_h{cfg.train.pred_len}_s{cfg.seed}"
+
+    use_wandb = bool(getattr(cfg.train, "use_wandb", False)) and _HAS_WANDB
+    if use_wandb:
+        wandb.init(
+            project=cfg.train.wandb_project,
+            name=run_name,
+            tags=[cfg.tag, cfg.data.name, cfg.model.name],
+            config=OmegaConf.to_container(cfg, resolve=True),
+            reinit=True,
+        )
+
     loaders = build_dataloaders(cfg.data, cfg.train)
     print(f"Loaded data | train={len(loaders['train'].dataset)} "
           f"val={len(loaders['val'].dataset)} test={len(loaders['test'].dataset)}")
@@ -76,6 +93,8 @@ def train(cfg: DictConfig) -> dict[str, float]:
     model = build_model(cfg.model, cfg.data, cfg.train).to(device)
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Built model: {cfg.model.name} | params={n_params:,}")
+    if use_wandb:
+        wandb.config.update({"n_parameters": n_params}, allow_val_change=True)
 
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -84,7 +103,6 @@ def train(cfg: DictConfig) -> dict[str, float]:
     )
     criterion = nn.MSELoss() if cfg.train.loss == "mse" else nn.L1Loss()
 
-    run_name = cfg.run_name or f"{cfg.data.name}_{cfg.model.name}_h{cfg.train.pred_len}_s{cfg.seed}"
     ckpt_path = Path(cfg.train.checkpoint_dir) / cfg.tag / f"{run_name}.pt"
     es = EarlyStopping(patience=cfg.train.patience)
 
@@ -136,6 +154,16 @@ def train(cfg: DictConfig) -> dict[str, float]:
               f"val_mse={val_metrics['mse']:.6f} val_mae={val_metrics['mae']:.6f} "
               f"({elapsed:.1f}s)")
 
+        if use_wandb:
+            wandb.log({
+                "epoch": epoch,
+                "train/loss": train_loss,
+                "val/mse": val_metrics["mse"],
+                "val/mae": val_metrics["mae"],
+                "lr": optimizer.param_groups[0]["lr"],
+                "epoch_time_s": elapsed,
+            })
+
         es(val_metrics["mse"], model, ckpt_path)
         if es.early_stop:
             print(f"Early stopping at epoch {epoch}.")
@@ -152,6 +180,10 @@ def train(cfg: DictConfig) -> dict[str, float]:
     test_metrics = evaluate(model, loaders["test"], device, cfg.train.pred_len)
     print(f"\nTest | mse={test_metrics['mse']:.6f} mae={test_metrics['mae']:.6f} "
           f"rmse={test_metrics['rmse']:.6f}")
+    if use_wandb:
+        wandb.log({f"test/{k}": v for k, v in test_metrics.items()})
+        wandb.summary["n_parameters"] = n_params
+        wandb.finish()
     return {"n_params": n_params, **{f"test_{k}": v for k, v in test_metrics.items()}}
 
 
