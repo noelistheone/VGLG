@@ -1,0 +1,21 @@
+# Root Hydra config. Compose with `data=...`, `model=...`, `train=...` overrides.
+defaults:
+  - data: etth1
+  - model: vglg_mlp
+  - train: default
+  - _self_
+
+seed: 2021
+device: cuda
+project: vglg-tsf
+run_name: null            # auto-generated from model+data+horizon if null
+tag: dev
+
+hydra:
+  run:
+    dir: logs/${tag}/${data.name}_${model.name}_h${train.pred_len}_s${seed}
+  sweep:
+    dir: logs/${tag}
+    subdir: ${data.name}_${model.name}_h${train.pred_len}_s${seed}
+  job:
+    chdir: false
