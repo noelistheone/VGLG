@@ -1,8 +1,10 @@
-"""Regenerate docs/results_table.md from logs/main/*.log.
+"""Regenerate docs/results_table.md from logs/main logs.
 
 Idempotent: scans every log, parses the final 'Test | mse=... mae=...' line,
 groups by (dataset, model, horizon), averages across seeds, and rewrites the
-markdown tables. Cells with no completed runs render as `—`.
+markdown tables. Supports both flat logs/main/*.log files and Hydra-style
+logs/main/<run_name>/trainer.log directories. Cells with no completed runs
+render as `—`.
 
 Usage:
     python scripts/update_results_table.py
@@ -12,10 +14,19 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+import torch
+from omegaconf import OmegaConf
+
+from src.data import build_dataloaders
+from src.models import build_model
+from src.train.trainer import evaluate
 
 DATASETS = ["etth1", "etth2", "ettm1", "ettm2", "weather", "electricity", "traffic", "f1weather"]
 DATASET_LABELS = {
@@ -41,6 +52,7 @@ MODELS = [
 ]
 
 LOG_NAME_RE = re.compile(r"^(?P<dataset>[a-z0-9]+)_(?P<model>[a-z_]+)_h(?P<h>\d+)_s(?P<seed>\d+)\.log$")
+CKPT_NAME_RE = re.compile(r"^(?P<dataset>[a-z0-9]+)_(?P<model>[a-z_]+)_h(?P<h>\d+)_s(?P<seed>\d+)\.pt$")
 TEST_LINE_RE = re.compile(r"Test \| mse=([\d.]+)\s+mae=([\d.]+)\s+rmse=([\d.]+)")
 PARAMS_RE = re.compile(r"params=([\d,]+)")
 
@@ -67,8 +79,12 @@ def collect(log_dir: Path) -> tuple[dict, dict]:
     """
     results: dict[tuple[str, str, int], list[tuple[float, float]]] = defaultdict(list)
     params: dict[str, int] = {}
-    for log_path in sorted(log_dir.glob("*.log")):
-        m = LOG_NAME_RE.match(log_path.name)
+    log_paths = list(log_dir.glob("*.log")) + list(log_dir.glob("*/trainer.log"))
+    for log_path in sorted(log_paths):
+        run_name = log_path.stem
+        if log_path.name == "trainer.log":
+            run_name = log_path.parent.name
+        m = LOG_NAME_RE.match(f"{run_name}.log")
         if not m:
             continue
         out = parse_log(log_path)
@@ -77,8 +93,55 @@ def collect(log_dir: Path) -> tuple[dict, dict]:
         mse, mae, n_params = out
         key = (m["dataset"], m["model"], int(m["h"]))
         results[key].append((mse, mae))
-        if n_params is not None and m["model"] not in params:
-            params[m["model"]] = n_params
+        if n_params is not None:
+            params[m["model"]] = min(n_params, params.get(m["model"], n_params))
+    return results, params
+
+
+def _compose_cfg(dataset: str, model: str, horizon: int, seed: int, tag: str):
+    cfg = OmegaConf.create({
+        "seed": seed,
+        "device": "cuda",
+        "project": "vglg-tsf",
+        "run_name": None,
+        "tag": tag,
+    })
+    cfg.data = OmegaConf.load(ROOT / "configs" / "data" / f"{dataset}.yaml")
+    cfg.model = OmegaConf.load(ROOT / "configs" / "model" / f"{model}.yaml")
+    cfg.train = OmegaConf.load(ROOT / "configs" / "train" / "default.yaml")
+    cfg.train.pred_len = horizon
+    cfg.train.num_workers = 0
+    return cfg
+
+
+def collect_checkpoints(ckpt_dir: Path, tag: str = "main") -> tuple[dict, dict]:
+    """Evaluate checkpoint files when stdout logs were not persisted."""
+    results: dict[tuple[str, str, int], list[tuple[float, float]]] = defaultdict(list)
+    params: dict[str, int] = {}
+    ckpts = sorted(ckpt_dir.glob("*.pt"))
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    for i, ckpt_path in enumerate(ckpts, 1):
+        m = CKPT_NAME_RE.match(ckpt_path.name)
+        if not m:
+            continue
+        dataset = m["dataset"]
+        model_name = m["model"]
+        horizon = int(m["h"])
+        seed = int(m["seed"])
+        cfg = _compose_cfg(dataset, model_name, horizon, seed, tag)
+        loaders = build_dataloaders(cfg.data, cfg.train)
+        model = build_model(cfg.model, cfg.data, cfg.train).to(device)
+        n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        params[model_name] = min(n_params, params.get(model_name, n_params))
+        state = torch.load(ckpt_path, map_location=device, weights_only=True)
+        model.load_state_dict(state)
+        metrics = evaluate(model, loaders["test"], device, horizon)
+        results[(dataset, model_name, horizon)].append((metrics["mse"], metrics["mae"]))
+        print(
+            f"[{i}/{len(ckpts)}] {ckpt_path.name} "
+            f"mse={metrics['mse']:.6f} mae={metrics['mae']:.6f}",
+            flush=True,
+        )
     return results, params
 
 
@@ -201,6 +264,11 @@ def build_doc(results, params) -> str:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--logs", default="logs/main", help="Directory with run log files")
+    ap.add_argument(
+        "--checkpoints",
+        default=None,
+        help="Evaluate checkpoint directory if logs do not contain test metrics",
+    )
     ap.add_argument("--out", default="docs/results_table.md")
     args = ap.parse_args()
 
@@ -211,6 +279,13 @@ def main():
 
     results, params = collect(log_dir)
     n_runs = sum(len(v) for v in results.values())
+    if n_runs == 0 and args.checkpoints:
+        ckpt_dir = ROOT / args.checkpoints
+        if not ckpt_dir.exists():
+            raise SystemExit(f"Checkpoint dir not found: {ckpt_dir}")
+        print(f"No completed runs found in logs; evaluating checkpoints from {ckpt_dir}")
+        results, params = collect_checkpoints(ckpt_dir)
+        n_runs = sum(len(v) for v in results.values())
     print(f"Parsed {n_runs} completed runs from {log_dir}")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
