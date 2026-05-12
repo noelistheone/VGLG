@@ -69,6 +69,11 @@ def evaluate(
 def train(cfg: DictConfig) -> dict[str, float]:
     seed_everything(cfg.seed)
     device = cfg.device if torch.cuda.is_available() else "cpu"
+    # TF32 matmul on Ampere — opt-in via train.matmul_precision. Default 'highest'
+    # preserves the prior behaviour exactly.
+    mp = getattr(cfg.train, "matmul_precision", "highest")
+    if mp in ("high", "medium"):
+        torch.set_float32_matmul_precision(mp)
 
     print("=" * 60)
     print(OmegaConf.to_yaml(cfg))

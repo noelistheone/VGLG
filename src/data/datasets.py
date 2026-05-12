@@ -56,6 +56,8 @@ class _ForecastDatasetBase(Dataset):
         target: str = "OT",
         scale: bool = True,
         freq: str = "h",
+        gpu_resident: bool = False,
+        device: str = "cuda",
     ):
         super().__init__()
         assert flag in self.flag_to_idx
@@ -70,6 +72,8 @@ class _ForecastDatasetBase(Dataset):
         self.target = target
         self.scale = scale
         self.freq = freq
+        self.gpu_resident = gpu_resident
+        self.device = device
         self.scaler = StandardScaler()
         self._read_data()
 
@@ -106,9 +110,18 @@ class _ForecastDatasetBase(Dataset):
         dates = pd.to_datetime(df_raw[date_col].values)
         time_feats = _time_features(dates, freq=self.freq)
 
-        self.data_x = data[b1:b2]
-        self.data_y = data[b1:b2]
-        self.data_stamp = time_feats[b1:b2]
+        if self.gpu_resident:
+            # Bit-identical to the numpy path: torch.from_numpy preserves the
+            # underlying float32 representation, then .to(device) is a pure copy.
+            # data_x and data_y share the same content — share storage to save VRAM.
+            data_t = torch.from_numpy(data[b1:b2]).to(self.device)
+            self.data_x = data_t
+            self.data_y = data_t
+            self.data_stamp = torch.from_numpy(time_feats[b1:b2]).to(self.device)
+        else:
+            self.data_x = data[b1:b2]
+            self.data_y = data[b1:b2]
+            self.data_stamp = time_feats[b1:b2]
 
     def __len__(self) -> int:
         return max(0, len(self.data_x) - self.seq_len - self.pred_len + 1)
@@ -124,6 +137,9 @@ class _ForecastDatasetBase(Dataset):
         seq_x_mark = self.data_stamp[s:s_end]
         seq_y_mark = self.data_stamp[r_begin:r_end]
 
+        if self.gpu_resident:
+            # Already torch tensors on GPU — slices are views (zero copy).
+            return seq_x, seq_y, seq_x_mark, seq_y_mark
         return (
             torch.from_numpy(seq_x),
             torch.from_numpy(seq_y),
@@ -180,6 +196,8 @@ def build_dataset(
     features: str = "M",
     target: str = "OT",
     freq: str = "h",
+    gpu_resident: bool = False,
+    device: str = "cuda",
 ) -> _ForecastDatasetBase:
     cls = {
         "ETTh": DatasetETTHour,
@@ -196,4 +214,6 @@ def build_dataset(
         features=features,
         target=target,
         freq=freq,
+        gpu_resident=gpu_resident,
+        device=device,
     )

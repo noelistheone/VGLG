@@ -14,6 +14,13 @@ lradj: type1            # type1 (halving) | type3 (cosine) | constant
 weight_decay: 0.0
 gradient_clip: 1.0
 use_amp: true
+# When true, datasets live on GPU as torch tensors (num_workers forced to 0,
+# pin_memory disabled). Big win for tiny models on wide datasets like Traffic
+# where the dataloader is the bottleneck.
+gpu_resident_data: false
+# 'high' enables TF32 matmul on Ampere — ~1.3x faster matmul, negligible
+# precision impact (<1e-5 relative error). 'highest' keeps strict FP32.
+matmul_precision: highest
 
 # Logging
 log_interval: 50
