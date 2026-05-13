@@ -4,8 +4,12 @@ defaults:
 name: distill
 teacher: amazon/chronos-bolt-base
 teacher_cache_dir: cache/teacher
+# NOTE: lambdas calibrated to match KD term magnitudes to MSE.
+# Empirically on ETTm with seq_len=96 the raw scales are roughly
+#   mse ~ 0.3,  trend_kd ~ 160,  freq_kd ~ 24,  diff_kd ~ 0.03
+# so each weighted term contributes ~10% of MSE.
 distill_lambda_mse: 1.0
-distill_lambda_trend: 0.5
-distill_lambda_freq: 0.5
-distill_lambda_diff: 0.3
+distill_lambda_trend: 0.0002
+distill_lambda_freq: 0.001
+distill_lambda_diff: 1.0
 distill_warmup_epochs: 1     # epochs of pure MSE before activating KD

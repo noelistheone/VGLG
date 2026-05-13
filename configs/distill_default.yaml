@@ -1,0 +1,20 @@
+defaults:
+  - data: ettm1
+  - model: metatsf_vglg
+  - train: distill
+  - _self_
+
+seed: 2021
+device: cuda
+project: vglg-tsf
+run_name: null
+tag: distill
+
+hydra:
+  run:
+    dir: logs/${tag}/${data.name}_${model.name}_kd_h${train.pred_len}_s${seed}
+  sweep:
+    dir: logs/${tag}
+    subdir: ${data.name}_${model.name}_kd_h${train.pred_len}_s${seed}
+  job:
+    chdir: false

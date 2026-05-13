@@ -49,6 +49,26 @@ MODELS = [
     ("metatsf_conv", "**MetaTSF-Conv**", "**Ours / Conv**"),
     ("metatsf_attn", "**MetaTSF-Attn**", "**Ours / Attn**"),
     ("metatsf_vglg", "**MetaTSF-VGLG**", "**Ours / VGLG**"),
+    # Distillation rows: Chronos zero-shot teacher + our student trained with KD
+    ("chronos_zs",     "_Chronos-Bolt_ ZS", "Foundation"),
+    ("metatsf_vglg_kd", "**MetaTSF-VGLG + KD**", "**Ours + KD**"),
+]
+
+# Table 2: VGLG ablation variants. Each runs on (ETTh1, Weather, Electricity)
+# x (h=96, 336, 720) x 3 seeds = 27 runs per variant.
+ABLATION_DATASETS = ["etth1", "weather", "electricity"]
+ABLATION_HORIZONS = [96, 336, 720]
+ABLATION_VARIANTS = [
+    ("full",         "**MetaTSF-VGLG (full)**"),
+    ("fixed_gate",   "– fixed gate g=0.5"),
+    ("local_only",   "– local only (g=1)"),
+    ("global_only",  "– global only (g=0)"),
+    ("kernel_15",    "kernel = 15 (default 31)"),
+    ("kernel_51",    "kernel = 51"),
+    ("rank_4",       "rank = 4 (default 8)"),
+    ("rank_16",      "rank = 16"),
+    ("rank_32",      "rank = 32"),
+    ("no_revin",     "no RevIN"),
 ]
 
 LOG_NAME_RE = re.compile(r"^(?P<dataset>[a-z0-9]+)_(?P<model>[a-z_]+)_h(?P<h>\d+)_s(?P<seed>\d+)\.log$")
@@ -72,18 +92,31 @@ def parse_log(path: Path) -> tuple[float, float, int | None] | None:
     return mse, mae, n_params
 
 
-def collect(log_dir: Path) -> tuple[dict, dict]:
+def collect(log_dirs: Path | list[Path]) -> tuple[dict, dict]:
     """Returns (results, params) where:
         results[(dataset, model, horizon)] -> list of (mse, mae) across seeds
-        params[model] -> the parameter count seen for that model (any dataset/horizon ok)
+        params[model] -> the parameter count seen for that model
+
+    `log_dirs` accepts a single Path (back-compat) or a list of Paths so both
+    logs/main and logs/distill can be aggregated together.
     """
+    if isinstance(log_dirs, Path):
+        log_dirs = [log_dirs]
     results: dict[tuple[str, str, int], list[tuple[float, float]]] = defaultdict(list)
     params: dict[str, int] = {}
-    log_paths = list(log_dir.glob("*.log")) + list(log_dir.glob("*/trainer.log"))
+    log_paths = []
+    for d in log_dirs:
+        if not d.exists():
+            continue
+        log_paths.extend(d.glob("*.log"))
+        log_paths.extend(d.glob("*/trainer.log"))
     for log_path in sorted(log_paths):
         run_name = log_path.stem
         if log_path.name == "trainer.log":
             run_name = log_path.parent.name
+        # The distill dispatcher writes <dataset>_metatsf_vglg_kd_h..._s....log
+        # so we strip the trailing "_kd" suffix and remap to model key
+        # "metatsf_vglg_kd" via the existing regex.
         m = LOG_NAME_RE.match(f"{run_name}.log")
         if not m:
             continue
@@ -145,11 +178,42 @@ def collect_checkpoints(ckpt_dir: Path, tag: str = "main") -> tuple[dict, dict]:
     return results, params
 
 
+def collect_ablations(ablation_root: Path) -> dict:
+    """Returns dict[(variant, dataset, horizon)] -> list[(mse, mae)] across seeds.
+
+    Logs are expected at: <ablation_root>/<variant>/<dataset>_h<horizon>_s<seed>.log
+    """
+    out: dict[tuple[str, str, int], list[tuple[float, float]]] = defaultdict(list)
+    if not ablation_root.exists():
+        return out
+    abl_log_re = re.compile(r"^(?P<dataset>[a-z0-9]+)_h(?P<h>\d+)_s(?P<seed>\d+)\.log$")
+    for variant_dir in sorted(ablation_root.iterdir()):
+        if not variant_dir.is_dir():
+            continue
+        variant = variant_dir.name
+        for log_path in sorted(variant_dir.glob("*.log")):
+            m = abl_log_re.match(log_path.name)
+            if not m:
+                continue
+            parsed = parse_log(log_path)
+            if parsed is None:
+                continue
+            mse, mae, _ = parsed
+            out[(variant, m["dataset"], int(m["h"]))].append((mse, mae))
+    return out
+
+
 def fmt_cell(values: list[float]) -> str:
     if not values:
         return "  `—`  "
     mean = sum(values) / len(values)
     return f"{mean:.3f}"
+
+
+def fmt_delta(value: float | None, baseline: float | None) -> str:
+    if value is None or baseline is None:
+        return "  `—`  "
+    return f"{value - baseline:+.3f}"
 
 
 def fmt_params(n: int | None) -> str:
@@ -189,6 +253,68 @@ def build_main_table(results, params) -> list[str]:
     return rows
 
 
+def build_ablation_table(abl: dict) -> list[str]:
+    """Table 2: rows = 10 variants, cols = 3 datasets + Overall + Δ vs full.
+
+    A dataset cell shows the mean MSE only when ALL 9 expected runs are
+    present (3 horizons × 3 seeds); otherwise shows `(N/9)` so partial
+    averages don't masquerade as final numbers.
+    """
+    n_per_dataset = len(ABLATION_HORIZONS) * 3
+    n_per_variant = len(ABLATION_DATASETS) * n_per_dataset
+    header = (
+        "| Variant                          | "
+        + " | ".join(DATASET_LABELS[d] for d in ABLATION_DATASETS)
+        + " | Overall | Δ vs full |"
+    )
+    sep = "|----------------------------------|" + "------:|" * (len(ABLATION_DATASETS) + 2)
+    rows = [header, sep]
+
+    overall: dict[str, float | None] = {}
+    n_done: dict[str, int] = {}
+    for vkey, _ in ABLATION_VARIANTS:
+        vals_full = []
+        n = 0
+        for d in ABLATION_DATASETS:
+            ds_vals = []
+            for h in ABLATION_HORIZONS:
+                ds_vals.extend(v[0] for v in abl.get((vkey, d, h), []))
+            n += len(ds_vals)
+            if len(ds_vals) == n_per_dataset:
+                vals_full.extend(ds_vals)
+        overall[vkey] = (sum(vals_full) / len(vals_full)) if vals_full else None
+        n_done[vkey] = n
+    baseline = overall.get("full")
+
+    for vkey, vlabel in ABLATION_VARIANTS:
+        cells = []
+        for d in ABLATION_DATASETS:
+            vals = []
+            for h in ABLATION_HORIZONS:
+                vals.extend(v[0] for v in abl.get((vkey, d, h), []))
+            if len(vals) == n_per_dataset:
+                cells.append(f"{sum(vals) / len(vals):.3f}")
+            elif len(vals) == 0:
+                cells.append("  `—`  ")
+            else:
+                cells.append(f"({len(vals)}/{n_per_dataset})")
+        ov = overall[vkey]
+        if ov is None:
+            ov_str = f"({n_done[vkey]}/{n_per_variant})"
+        else:
+            ov_str = f"{ov:.3f}"
+        if vkey == "full":
+            delta_str = "—"
+        elif ov is None or baseline is None:
+            delta_str = "  `—`  "
+        else:
+            delta_str = fmt_delta(ov, baseline)
+        rows.append(
+            f"| {vlabel:<32s} | " + " | ".join(cells) + f" | {ov_str} | {delta_str} |"
+        )
+    return rows
+
+
 def build_detail_table(dataset: str, results) -> list[str]:
     """Per-dataset table: rows = 12 models, cols = 4 horizons x {MSE, MAE}."""
     cols = []
@@ -210,7 +336,9 @@ def build_detail_table(dataset: str, results) -> list[str]:
     return rows
 
 
-def build_doc(results, params) -> str:
+def build_doc(results, params, abl: dict | None = None) -> str:
+    if abl is None:
+        abl = {}
     n_runs = sum(len(v) for v in results.values())
     n_datasets_with_data = len({d for d, _, _ in results.keys()})
     out = []
@@ -243,13 +371,24 @@ def build_doc(results, params) -> str:
         out.append("")
     out.append("---")
     out.append("")
-    out.append("## Table 2 — Ablations (TBD)")
+    n_abl_runs = sum(len(v) for v in abl.values())
+    out.append("## Table 2 — VGLG TokenMixer ablation")
     out.append("")
     out.append(
-        "Populated once the ablation sweeps finish. Variants: full / fixed gate / "
-        "local-only / global-only / kernel ∈ {15, 31, 51} / rank ∈ {4, 8, 16, 32} / "
-        "no RevIN."
+        f"Each variant trained on **3 datasets × 3 horizons × 3 seeds = 27 runs** "
+        f"(currently {n_abl_runs} done). A dataset cell shows the mean MSE only "
+        f"when all 9 expected runs are present; otherwise `(N/9)`. Δ column = "
+        f"overall − full (positive = worse than full)."
     )
+    out.append("")
+    out.extend(build_ablation_table(abl))
+    out.append("")
+    out.append(
+        "**Datasets**: ETTh1, Weather, Electricity. **Horizons**: 96, 336, 720. "
+        "Logs expected at `logs/ablation/<variant>/<dataset>_h<horizon>_s<seed>.log`."
+    )
+    out.append("")
+    out.append("---")
     out.append("")
     out.append("## Table 3 — Distillation (TBD)")
     out.append("")
@@ -263,21 +402,33 @@ def build_doc(results, params) -> str:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--logs", default="logs/main", help="Directory with run log files")
+    ap.add_argument("--logs", default="logs/main", help="Directory with main run logs")
+    ap.add_argument(
+        "--distill-logs",
+        default="logs/distill",
+        help="Directory with KD distillation run logs",
+    )
     ap.add_argument(
         "--checkpoints",
         default=None,
         help="Evaluate checkpoint directory if logs do not contain test metrics",
     )
+    ap.add_argument(
+        "--ablation-logs",
+        default="logs/ablation",
+        help="Directory with ablation run logs (one subdir per variant)",
+    )
     ap.add_argument("--out", default="docs/results_table.md")
     args = ap.parse_args()
 
     log_dir = ROOT / args.logs
+    distill_dir = ROOT / args.distill_logs
+    abl_dir = ROOT / args.ablation_logs
     out_path = ROOT / args.out
     if not log_dir.exists():
         raise SystemExit(f"Log dir not found: {log_dir}")
 
-    results, params = collect(log_dir)
+    results, params = collect([log_dir, distill_dir])
     n_runs = sum(len(v) for v in results.values())
     if n_runs == 0 and args.checkpoints:
         ckpt_dir = ROOT / args.checkpoints
@@ -286,10 +437,13 @@ def main():
         print(f"No completed runs found in logs; evaluating checkpoints from {ckpt_dir}")
         results, params = collect_checkpoints(ckpt_dir)
         n_runs = sum(len(v) for v in results.values())
-    print(f"Parsed {n_runs} completed runs from {log_dir}")
+    abl = collect_ablations(abl_dir)
+    n_abl = sum(len(v) for v in abl.values())
+    print(f"Parsed {n_runs} main runs from {log_dir}")
+    print(f"Parsed {n_abl} ablation runs from {abl_dir}")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(build_doc(results, params))
+    out_path.write_text(build_doc(results, params, abl))
     print(f"Wrote {out_path}")
 
 
