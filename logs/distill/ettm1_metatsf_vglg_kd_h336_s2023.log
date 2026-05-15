@@ -1,0 +1,114 @@
+============================================================
+data:
+  name: ettm1
+  root_path: data/ETT-small
+  data_path: ETTm1.csv
+  data_kind: ETTm
+  features: M
+  target: OT
+  freq: t
+  n_vars: 7
+model:
+  name: metatsf_vglg
+  type: vglg
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: vglg
+    kernel_size: 31
+    rank: 8
+    dropout: 0.1
+    gate_hidden: 16
+    gate_entropy_reg: 0.0
+    gate_mode: learned
+train:
+  name: distill
+  seq_len: 96
+  label_len: 48
+  pred_len: 336
+  batch_size: 64
+  num_workers: 4
+  train_epochs: 10
+  patience: 3
+  learning_rate: 0.0001
+  loss: mse
+  lradj: type1
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+  teacher: amazon/chronos-bolt-base
+  teacher_cache_dir: cache/teacher
+  distill_lambda_mse: 1.0
+  distill_lambda_trend: 0.0002
+  distill_lambda_freq: 0.001
+  distill_lambda_diff: 1.0
+  distill_warmup_epochs: 1
+seed: 2023
+device: cuda
+project: vglg-tsf
+run_name: null
+tag: distill
+
+============================================================
+Loaded data | train=34129 val=11185 test=11185
+Built model: metatsf_vglg | params=61,018
+  epoch 1 batch 50/533 loss=0.599672 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 100/533 loss=0.570046 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 150/533 loss=0.543742 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 200/533 loss=0.525979 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 250/533 loss=0.509886 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 300/533 loss=0.500145 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 350/533 loss=0.491274 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 400/533 loss=0.483550 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 450/533 loss=0.477091 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 500/533 loss=0.472557 trend=0.0000 freq=0.0000 diff=0.0000
+Epoch 1 | train_loss=0.469329 val_mse=0.692274 val_mae=0.552806 (6.6s)
+  Validation improved to 0.692274; saved checkpoint.
+  epoch 2 batch 50/533 loss=1.079854 trend=2432.7675 freq=99.8017 diff=0.0230
+  epoch 2 batch 100/533 loss=1.033329 trend=2240.7862 freq=92.6761 diff=0.0204
+  epoch 2 batch 150/533 loss=1.005948 trend=2118.9126 freq=87.9596 diff=0.0188
+  epoch 2 batch 200/533 loss=0.993852 trend=2059.0980 freq=85.8415 diff=0.0177
+  epoch 2 batch 250/533 loss=0.986053 trend=2027.7953 freq=84.6229 diff=0.0168
+  epoch 2 batch 300/533 loss=0.975123 trend=1987.1042 freq=82.8764 diff=0.0159
+  epoch 2 batch 350/533 loss=0.965838 trend=1949.9516 freq=81.3611 diff=0.0153
+  epoch 2 batch 400/533 loss=0.963507 trend=1941.6696 freq=81.1480 diff=0.0148
+  epoch 2 batch 450/533 loss=0.960448 trend=1930.7752 freq=80.6486 diff=0.0143
+  epoch 2 batch 500/533 loss=0.956899 trend=1917.9526 freq=80.0125 diff=0.0138
+Epoch 2 | train_loss=0.952542 val_mse=0.834200 val_mae=0.620454 (6.8s)
+  EarlyStopping: 1/3
+  epoch 3 batch 50/533 loss=0.898287 trend=1729.4701 freq=71.8452 diff=0.0092
+  epoch 3 batch 100/533 loss=0.896289 trend=1704.9399 freq=71.0375 diff=0.0092
+  epoch 3 batch 150/533 loss=0.903098 trend=1723.2121 freq=71.9306 diff=0.0091
+  epoch 3 batch 200/533 loss=0.905481 trend=1725.2053 freq=71.6025 diff=0.0091
+  epoch 3 batch 250/533 loss=0.909561 trend=1734.4800 freq=71.5956 diff=0.0090
+  epoch 3 batch 300/533 loss=0.910974 trend=1740.4033 freq=71.9444 diff=0.0090
+  epoch 3 batch 350/533 loss=0.911574 trend=1740.2851 freq=71.9780 diff=0.0089
+  epoch 3 batch 400/533 loss=0.908416 trend=1732.7918 freq=71.5987 diff=0.0089
+  epoch 3 batch 450/533 loss=0.912478 trend=1748.6503 freq=72.3676 diff=0.0088
+  epoch 3 batch 500/533 loss=0.915410 trend=1761.4957 freq=72.9654 diff=0.0088
+Epoch 3 | train_loss=0.915504 val_mse=0.837178 val_mae=0.621125 (6.7s)
+  EarlyStopping: 2/3
+  epoch 4 batch 50/533 loss=0.920126 trend=1768.2296 freq=73.0699 diff=0.0081
+  epoch 4 batch 100/533 loss=0.926722 trend=1799.3556 freq=75.0725 diff=0.0081
+  epoch 4 batch 150/533 loss=0.921621 trend=1772.4412 freq=73.6368 diff=0.0081
+  epoch 4 batch 200/533 loss=0.911453 trend=1731.8997 freq=71.8394 diff=0.0081
+  epoch 4 batch 250/533 loss=0.911105 trend=1735.3199 freq=71.7794 diff=0.0080
+  epoch 4 batch 300/533 loss=0.916775 trend=1759.1798 freq=72.6446 diff=0.0080
+  epoch 4 batch 350/533 loss=0.911821 trend=1736.5780 freq=71.8628 diff=0.0080
+  epoch 4 batch 400/533 loss=0.908764 trend=1728.6545 freq=71.5067 diff=0.0079
+  epoch 4 batch 450/533 loss=0.907687 trend=1730.0666 freq=71.4128 diff=0.0079
+  epoch 4 batch 500/533 loss=0.907799 trend=1727.4203 freq=71.4267 diff=0.0079
+Epoch 4 | train_loss=0.908438 val_mse=0.838884 val_mae=0.621182 (6.7s)
+  EarlyStopping: 3/3
+Early stopping at epoch 4.
+
+Test | mse=0.438296 mae=0.428427 rmse=0.662039

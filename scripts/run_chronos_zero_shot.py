@@ -46,25 +46,36 @@ def _compose_cfg(dataset: str, horizon: int, batch_size: int):
 
 def evaluate_chronos(teacher: ChronosTeacher, dataset: str, horizon: int,
                      batch_size: int, device: str = "cuda") -> dict:
+    """Streaming MSE/MAE evaluation: O(1) memory regardless of test-set size.
+
+    The previous version accumulated predictions in RAM (preds/trues lists),
+    which OOM-killed the process around batch 345 of traffic h=720 because
+    14+ GB of accumulated tensors competed with sahil's job.
+    """
     cfg = _compose_cfg(dataset, horizon, batch_size)
     loaders = build_dataloaders(cfg.data, cfg.train)
     test_loader = loaders["test"]
-    preds, trues = [], []
+    sse = 0.0   # sum of squared errors
+    sae = 0.0   # sum of absolute errors
+    n_elem = 0  # total number of (sample, time, var) elements
     n_seen = 0
     t0 = time.time()
     for i, (batch_x, batch_y, _, _) in enumerate(test_loader):
         batch_x = batch_x.float().to(device)
         target = batch_y[:, -horizon:, :].float().to(device)
         out = teacher.predict(batch_x, horizon)
-        preds.append(out.cpu().numpy())
-        trues.append(target.cpu().numpy())
+        diff = out - target
+        sse += float(diff.pow(2).sum().item())
+        sae += float(diff.abs().sum().item())
+        n_elem += diff.numel()
         n_seen += batch_x.size(0)
         if (i + 1) % 5 == 0:
             print(f"    batch {i+1}/{len(test_loader)} ({n_seen} samples)  "
                   f"elapsed {time.time()-t0:.1f}s", flush=True)
-    preds = np.concatenate(preds, axis=0)
-    trues = np.concatenate(trues, axis=0)
-    return metric(preds, trues), n_seen, time.time() - t0
+    mse = sse / max(n_elem, 1)
+    mae = sae / max(n_elem, 1)
+    rmse = mse ** 0.5
+    return {"mse": mse, "mae": mae, "rmse": rmse}, n_seen, time.time() - t0
 
 
 def main():
@@ -87,6 +98,16 @@ def main():
 
     for dataset, horizon in product(args.datasets, args.horizons):
         log_path = log_dir / f"{dataset}_chronos_zs_h{horizon}_s{args.seed_tag}.log"
+        # Resume: skip if a completed log already exists ("Test |" in tail)
+        if log_path.exists():
+            try:
+                tail = log_path.read_text(errors="ignore")[-2048:]
+                if "Test |" in tail:
+                    print(f"=== {dataset} h={horizon} -> SKIP (already done) ===",
+                          flush=True)
+                    continue
+            except OSError:
+                pass
         print(f"=== {dataset} h={horizon} -> {log_path.name} ===", flush=True)
         metrics, n_seen, elapsed = evaluate_chronos(
             teacher, dataset, horizon, args.batch_size,

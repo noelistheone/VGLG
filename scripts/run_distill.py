@@ -25,9 +25,13 @@ DATASETS = ["ettm1", "ettm2"]
 HORIZONS = [96, 192, 336, 720]
 SEEDS = [2021, 2022, 2023]
 TAG = "distill"
-BATCH_SIZE = 64
 NUM_WORKERS = 4
 TRAIN_EPOCHS = 10
+# Per-dataset batch size (matched to verify_all sweep).
+BATCH_SIZE = {
+    "etth1": 32, "etth2": 32, "ettm1": 64, "ettm2": 64,
+    "weather": 32, "electricity": 16, "traffic": 8, "f1weather": 32,
+}
 
 
 def is_done(log_path: Path) -> bool:
@@ -46,12 +50,13 @@ def is_done(log_path: Path) -> bool:
 
 def run_one(dataset: str, horizon: int, seed: int, log_dir: Path) -> tuple[str, float]:
     log_path = log_dir / f"{dataset}_metatsf_vglg_kd_h{horizon}_s{seed}.log"
+    bs = BATCH_SIZE.get(dataset, 16)
     cmd = [
         sys.executable, "-m", "src.train.distill_trainer",
         "--config-name=distill_default",
         f"data={dataset}",
         f"train.pred_len={horizon}",
-        f"train.batch_size={BATCH_SIZE}",
+        f"train.batch_size={bs}",
         f"train.num_workers={NUM_WORKERS}",
         f"train.train_epochs={TRAIN_EPOCHS}",
         f"seed={seed}",
