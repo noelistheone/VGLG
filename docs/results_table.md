@@ -2,7 +2,7 @@
 
 Numbers below are **MSE / MAE on the test set**, mean across 3 seeds (2021/2022/2023). Lower is better. Cells render as `—` when no run has completed yet. Regenerate with `python scripts/update_results_table.py`.
 
-Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD) + remote ETTh1/ETTh2/Weather/Electricity/Traffic/f1weather + 190 ablation runs**.
+Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD) + remote ETTh1/ETTh2/Weather/Electricity/Traffic/f1weather + 190 ablation runs + P2: 24 VGLG+KD on Electricity + Traffic**.
 
 ---
 
@@ -23,7 +23,7 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Attn** | **Ours / Attn** | 157k | 0.463 | 0.400 | 0.406 | 0.289 | 0.257 | 0.216 | 0.633 | 2.022 | 0.586 |
 | **MetaTSF-VGLG** | **Ours / VGLG** | 30k | 0.466 | 0.404 | 0.406 | 0.287 | 0.250 | 0.221 | 0.610 | 2.001 | 0.581 |
 | _Chronos-Bolt_ ZS  | Foundation         |        0 |   `—`   |   `—`   | 1.033 | 0.352 |   `—`   |   `—`   |   `—`   |   `—`   | 0.693 |
-| **MetaTSF-VGLG + KD** | **Ours + KD**      |      30k |   `—`   |   `—`   | 0.429 | 0.291 |   `—`   |   `—`   |   `—`   |   `—`   | 0.360 |
+| **MetaTSF-VGLG + KD** | **Ours + KD**      |      30k |   `—`   |   `—`   | 0.429 | 0.291 |   `—`   | 0.231 | 0.607 |   `—`   | 0.390 |
 
 > Each cell is the mean MSE across all available (horizon, seed) runs for that (model, dataset). The four MetaTSF rows share an identical backbone — only the TokenMixer module differs.
 
@@ -134,6 +134,7 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv**   | 0.197 | 0.299 | 0.204 | 0.303 | 0.222 | 0.321 | 0.250 | 0.341 |
 | **MetaTSF-Attn**   | 0.190 | 0.293 | 0.201 | 0.301 | 0.221 | 0.319 | 0.253 | 0.344 |
 | **MetaTSF-VGLG**   | 0.204 | 0.303 | 0.206 | 0.304 | 0.226 | 0.321 | 0.250 | 0.342 |
+| **MetaTSF-VGLG + KD** | 0.205 | 0.303 | 0.212 | 0.309 | 0.232 | 0.327 | 0.274 | 0.358 |
 
 ## Table 1g — Traffic (per-horizon detail)
 
@@ -151,6 +152,7 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv**   | 0.552 | 0.382 | 0.553 | 0.385 | 0.577 | 0.399 | 0.612 | 0.411 |
 | **MetaTSF-Attn**   | 0.619 | 0.417 | 0.612 | 0.407 | 0.611 | 0.416 | 0.692 | 0.442 |
 | **MetaTSF-VGLG**   | 0.603 | 0.410 | 0.580 | 0.399 | 0.607 | 0.419 | 0.648 | 0.440 |
+| **MetaTSF-VGLG + KD** | 0.550 | 0.373 | 0.565 | 0.383 | 0.611 | 0.406 | 0.703 | 0.461 |
 
 ## Table 1h — f1weather (per-horizon detail)
 
