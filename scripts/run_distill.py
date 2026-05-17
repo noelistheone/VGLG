@@ -63,8 +63,13 @@ def run_one(dataset: str, horizon: int, seed: int, log_dir: Path) -> tuple[str, 
         f"tag={TAG}",
     ]
     t0 = time.time()
-    with log_path.open("w") as fh:
-        r = subprocess.run(cmd, cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT, timeout=3600)
+    # Some long traffic h=720 runs take >1h just for cold-cache load + first epoch.
+    # Catch TimeoutExpired so a stuck run doesn't abort the whole sweep.
+    try:
+        with log_path.open("w") as fh:
+            r = subprocess.run(cmd, cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT, timeout=14400)
+    except subprocess.TimeoutExpired:
+        return "TIMEOUT", time.time() - t0
     elapsed = time.time() - t0
     if r.returncode != 0:
         return "FAIL", elapsed

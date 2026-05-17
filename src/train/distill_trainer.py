@@ -23,7 +23,7 @@ from torch.utils.data import DataLoader
 from src.data.data_provider import build_dataloaders
 from src.data.datasets import build_dataset
 from src.data.distill_dataset import DistillDataset
-from src.losses.distill import diff_kd_loss, freq_kd_loss, trend_kd_loss
+from src.losses.distill import kd_loss_bundle
 from src.models import build_model
 from src.train.trainer import evaluate
 from src.utils import EarlyStopping, seed_everything
@@ -150,9 +150,7 @@ def train(cfg: DictConfig) -> dict[str, float]:
                     loss = loss_mse
                     l_tre = l_frq = l_dif = torch.tensor(0.0, device=device)
                 else:
-                    l_tre = trend_kd_loss(out, t_pred)
-                    l_frq = freq_kd_loss(out, t_pred)
-                    l_dif = diff_kd_loss(out, t_pred)
+                    l_tre, l_frq, l_dif = kd_loss_bundle(out, t_pred)
                     loss = l_mse_w * loss_mse + l_tre_w * l_tre + l_frq_w * l_frq + l_dif_w * l_dif
 
             scaler.scale(loss).backward()
@@ -175,7 +173,6 @@ def train(cfg: DictConfig) -> dict[str, float]:
                       f"diff={running_kd['diff']/n_batches:.4f}")
 
         train_loss = running / max(1, n_batches)
-        from src.utils import metric as metric_fn
         val_metrics = evaluate(model, val_loader, device, cfg.train.pred_len)
         elapsed = time.time() - t0
         print(f"Epoch {epoch} | train_loss={train_loss:.6f} "

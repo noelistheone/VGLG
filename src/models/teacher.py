@@ -50,7 +50,7 @@ class ChronosTeacher:
         for start in range(0, B * N, chunk_size):
             chunk = flat[start:start + chunk_size]
             quantiles, mean = self.pipe.predict_quantiles(
-                inputs=chunk,
+                chunk,
                 prediction_length=pred_len,
                 quantile_levels=[0.5],
             )

@@ -38,7 +38,8 @@ def _data_cfg(name: str):
 
 
 def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
-              cache_dir: Path, batch_size: int = 8, fp16: bool = False):
+              cache_dir: Path, batch_size: int = 8, fp16: bool = False,
+              shard_id: int = 0, num_shards: int = 1):
     """Build a teacher cache, streaming each chunk to disk to avoid an
     intermediate full-tensor in RAM.
 
@@ -48,6 +49,12 @@ def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
     so only the windows actually touched are paged in.
 
     fp16=False keeps the legacy fp32 .pt format (used for ETTm caches).
+
+    shard_id / num_shards: split the work across multiple processes writing to
+    non-overlapping contiguous slices of the same memmap file. Shard 0 creates
+    the file; other shards wait for it to appear and open in 'r+' mode. After
+    all shards complete, the caller (or a separate finalize step) renames
+    .partial -> final.
     """
     cfg = _data_cfg(dataset)
     ds = build_dataset(
@@ -67,6 +74,9 @@ def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
 
     ext = "npy" if fp16 else "pt"
     cache_path = cache_dir / f"{dataset}_h{horizon}_{split}.{ext}"
+    # The fp32 path now writes .npy too (streamed memmap), so check both
+    # extensions for existing caches.
+    npy_alt = cache_path.with_suffix(".npy") if not fp16 else None
     if cache_path.exists():
         if fp16:
             arr = np.load(cache_path, mmap_mode="r")
@@ -80,6 +90,12 @@ def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
                 print(f"  [skip] {cache_path.name}: already has {n} entries")
                 return
             print(f"  [redo] {cache_path.name}: {cached.shape[0]} != {n}")
+    elif npy_alt is not None and npy_alt.exists():
+        arr = np.load(npy_alt, mmap_mode="r")
+        if arr.shape == (n, horizon, n_vars):
+            print(f"  [skip] {npy_alt.name}: already has {n} entries (fp32 .npy)")
+            return
+        print(f"  [redo] {npy_alt.name}: shape mismatch {arr.shape}")
 
     loader = DataLoader(ds, batch_size=batch_size, shuffle=False, num_workers=2,
                         pin_memory=True)
@@ -110,19 +126,36 @@ def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
         print(f"  Wrote {cache_path.name}: {(n, horizon, n_vars)} fp16 "
               f"in {time.time()-t0:.0f}s")
     else:
-        out_chunks = []
+        # Stream fp32 chunks into a pre-allocated numpy memmap (.npy on disk),
+        # then rename to the .pt cache path so it's the canonical artifact.
+        # DistillDataset auto-detects .npy mmap caches via _resolve_cache_path.
+        #
+        # The legacy approach (out_chunks list + torch.cat) caused unbounded
+        # CPU-RAM growth and a slowdown spiral on h>=336: as the list grew to
+        # multi-GB, Python malloc/GC overhead starved the GPU (~5h hang on
+        # elec h=336 cache).
+        npy_path = cache_path.with_suffix(".npy")
+        tmp_path = npy_path.with_suffix(".npy.partial")
+        out_arr = np.lib.format.open_memmap(
+            tmp_path, mode="w+", dtype=np.float32,
+            shape=(n, horizon, n_vars),
+        )
+        offset = 0
         for i, (batch_x, _, _, _) in enumerate(loader):
             batch_x = batch_x.float().cuda(non_blocking=True)
             pred = teacher.predict(batch_x, horizon)
-            out_chunks.append(pred.float().cpu())
+            np_pred = pred.detach().cpu().float().numpy()
+            b = np_pred.shape[0]
+            out_arr[offset:offset + b] = np_pred
+            offset += b
             if (i + 1) % 50 == 0:
-                done = (i + 1) * batch_size
-                print(f"    {done}/{n} ({100*done/n:.0f}%)  "
+                print(f"    {offset}/{n} ({100*offset/n:.0f}%)  "
                       f"elapsed {time.time()-t0:.0f}s", flush=True)
-        out = torch.cat(out_chunks, dim=0)[:n]
-        torch.save(out, cache_path)
-        print(f"  Wrote {cache_path.name}: {tuple(out.shape)} fp32 "
-              f"in {time.time()-t0:.0f}s")
+        out_arr.flush()
+        del out_arr
+        tmp_path.rename(npy_path)
+        print(f"  Wrote {npy_path.name}: {(n, horizon, n_vars)} fp32 "
+              f"(streamed, mmap) in {time.time()-t0:.0f}s")
 
 
 def main():
