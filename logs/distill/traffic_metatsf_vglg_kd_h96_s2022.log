@@ -1,0 +1,260 @@
+============================================================
+data:
+  name: traffic
+  root_path: data/traffic
+  data_path: traffic.csv
+  data_kind: custom
+  features: M
+  target: OT
+  freq: h
+  n_vars: 862
+model:
+  name: metatsf_vglg
+  type: vglg
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: vglg
+    kernel_size: 31
+    rank: 8
+    dropout: 0.1
+    gate_hidden: 16
+    gate_entropy_reg: 0.0
+    gate_mode: learned
+train:
+  name: distill
+  seq_len: 96
+  label_len: 48
+  pred_len: 96
+  batch_size: 8
+  num_workers: 4
+  train_epochs: 10
+  patience: 3
+  learning_rate: 0.0001
+  loss: mse
+  lradj: type1
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  gpu_resident_data: false
+  matmul_precision: highest
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+  teacher: amazon/chronos-bolt-base
+  teacher_cache_dir: cache/teacher
+  distill_lambda_mse: 1.0
+  distill_lambda_trend: 0.0002
+  distill_lambda_freq: 0.001
+  distill_lambda_diff: 1.0
+  distill_warmup_epochs: 1
+seed: 2022
+device: cuda
+project: vglg-tsf
+run_name: null
+tag: distill
+
+============================================================
+Loaded data | train=12089 val=1661 test=3413
+Built model: metatsf_vglg | params=6,042,418
+  epoch 1 batch 50/1511 loss=0.997987 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 100/1511 loss=0.854317 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 150/1511 loss=0.780839 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 200/1511 loss=0.733620 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 250/1511 loss=0.698372 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 300/1511 loss=0.670178 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 350/1511 loss=0.647176 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 400/1511 loss=0.627475 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 450/1511 loss=0.610238 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 500/1511 loss=0.594245 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 550/1511 loss=0.580549 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 600/1511 loss=0.567956 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 650/1511 loss=0.556137 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 700/1511 loss=0.545855 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 750/1511 loss=0.536204 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 800/1511 loss=0.527079 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 850/1511 loss=0.518933 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 900/1511 loss=0.511157 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 950/1511 loss=0.504046 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1000/1511 loss=0.497040 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1050/1511 loss=0.490726 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1100/1511 loss=0.484507 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1150/1511 loss=0.478502 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1200/1511 loss=0.472957 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1250/1511 loss=0.467612 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1300/1511 loss=0.462319 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1350/1511 loss=0.457390 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1400/1511 loss=0.452551 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1450/1511 loss=0.447977 trend=0.0000 freq=0.0000 diff=0.0000
+  epoch 1 batch 1500/1511 loss=0.443480 trend=0.0000 freq=0.0000 diff=0.0000
+Epoch 1 | train_loss=0.442469 val_mse=0.496577 val_mae=0.373330 (46.2s)
+  Validation improved to 0.496577; saved checkpoint.
+  epoch 2 batch 50/1511 loss=371.005682 trend=996694.9090 freq=167446.1288 diff=3.9045
+  epoch 2 batch 100/1511 loss=370.992451 trend=996677.0401 freq=167443.3187 diff=3.9000
+  epoch 2 batch 150/1511 loss=395.675182 trend=1063076.9037 freq=178598.7335 diff=4.1504
+  epoch 2 batch 200/1511 loss=364.790211 trend=980023.2344 freq=164645.5044 diff=3.8305
+  epoch 2 batch 250/1511 loss=356.146930 trend=956792.5173 freq=160742.5338 diff=3.7392
+  epoch 2 batch 300/1511 loss=364.568346 trend=979451.5264 freq=164549.3387 diff=3.8238
+  epoch 2 batch 350/1511 loss=358.438352 trend=962974.3436 freq=161780.8133 diff=3.7590
+  epoch 2 batch 400/1511 loss=359.997336 trend=967173.2701 freq=162486.2792 diff=3.7734
+  epoch 2 batch 450/1511 loss=363.959450 trend=977836.3212 freq=164277.6335 diff=3.8126
+  epoch 2 batch 500/1511 loss=389.352347 trend=1046138.8446 freq=175752.6549 diff=4.0720
+  epoch 2 batch 550/1511 loss=398.915274 trend=1071865.3856 freq=180074.5849 diff=4.1688
+  epoch 2 batch 600/1511 loss=394.522799 trend=1060058.6943 freq=178091.0382 diff=4.1227
+  epoch 2 batch 650/1511 loss=402.204149 trend=1080724.5418 freq=181562.9653 diff=4.2005
+  epoch 2 batch 700/1511 loss=394.683566 trend=1060503.7445 freq=178165.7017 diff=4.1223
+  epoch 2 batch 750/1511 loss=391.456731 trend=1051829.6843 freq=176708.3618 diff=4.0883
+  epoch 2 batch 800/1511 loss=402.520235 trend=1081589.2934 freq=181708.0734 diff=4.2010
+  epoch 2 batch 850/1511 loss=394.848457 trend=1060961.7837 freq=178242.5969 diff=4.1214
+  epoch 2 batch 900/1511 loss=396.261575 trend=1064766.4494 freq=178881.8089 diff=4.1353
+  epoch 2 batch 950/1511 loss=397.525160 trend=1068169.0290 freq=179453.4622 diff=4.1475
+  epoch 2 batch 1000/1511 loss=398.662788 trend=1071233.2221 freq=179968.2478 diff=4.1585
+  epoch 2 batch 1050/1511 loss=396.162810 trend=1064514.0790 freq=178839.4324 diff=4.1323
+  epoch 2 batch 1100/1511 loss=397.262129 trend=1067474.8113 freq=179336.7942 diff=4.1429
+  epoch 2 batch 1150/1511 loss=400.409784 trend=1075944.5463 freq=180759.7371 diff=4.1746
+  epoch 2 batch 1200/1511 loss=398.148356 trend=1069867.0309 freq=179738.7206 diff=4.1508
+  epoch 2 batch 1250/1511 loss=399.032469 trend=1072248.5297 freq=180138.8268 diff=4.1594
+  epoch 2 batch 1300/1511 loss=397.949508 trend=1069339.8192 freq=179650.1443 diff=4.1477
+  epoch 2 batch 1350/1511 loss=404.265692 trend=1086330.0176 freq=182504.5283 diff=4.2121
+  epoch 2 batch 1400/1511 loss=401.308411 trend=1078379.8621 freq=181168.8819 diff=4.1812
+  epoch 2 batch 1450/1511 loss=403.665646 trend=1084722.3747 freq=182234.4370 diff=4.2050
+  epoch 2 batch 1500/1511 loss=404.218832 trend=1086213.9032 freq=182485.0096 diff=4.2102
+Epoch 2 | train_loss=405.365517 val_mse=0.453670 val_mae=0.333266 (78.1s)
+  Validation improved to 0.453670; saved checkpoint.
+  epoch 3 batch 50/1511 loss=321.453160 trend=863722.0437 freq=145105.9729 diff=3.3465
+  epoch 3 batch 100/1511 loss=358.503329 trend=963376.6275 freq=161848.1709 diff=3.7268
+  epoch 3 batch 150/1511 loss=354.388161 trend=952308.3637 freq=159988.6088 diff=3.6841
+  epoch 3 batch 200/1511 loss=367.444913 trend=987426.6712 freq=165888.5735 diff=3.8182
+  epoch 3 batch 250/1511 loss=368.133724 trend=989278.8131 freq=166199.5991 diff=3.8252
+  epoch 3 batch 300/1511 loss=385.066528 trend=1034820.5658 freq=173850.5171 diff=3.9990
+  epoch 3 batch 350/1511 loss=365.404054 trend=981937.1944 freq=164965.8407 diff=3.7972
+  epoch 3 batch 400/1511 loss=366.081801 trend=983760.8804 freq=165272.3207 diff=3.8042
+  epoch 3 batch 450/1511 loss=366.607390 trend=985176.5792 freq=165510.2515 diff=3.8093
+  epoch 3 batch 500/1511 loss=371.974177 trend=999612.0768 freq=167935.4298 diff=3.8643
+  epoch 3 batch 550/1511 loss=374.118693 trend=1005380.9044 freq=168904.5913 diff=3.8862
+  epoch 3 batch 600/1511 loss=377.967360 trend=1015731.9815 freq=170643.5428 diff=3.9256
+  epoch 3 batch 650/1511 loss=381.218372 trend=1024476.3765 freq=172112.6622 diff=3.9590
+  epoch 3 batch 700/1511 loss=392.826489 trend=1055697.3986 freq=177357.8745 diff=4.0781
+  epoch 3 batch 750/1511 loss=397.946224 trend=1069468.4077 freq=179671.4487 diff=4.1306
+  epoch 3 batch 800/1511 loss=396.251812 trend=1064912.3647 freq=178906.0276 diff=4.1131
+  epoch 3 batch 850/1511 loss=406.387295 trend=1092173.1503 freq=183485.8186 diff=4.2170
+  epoch 3 batch 900/1511 loss=404.413504 trend=1086866.2201 freq=182594.2216 diff=4.1967
+  epoch 3 batch 950/1511 loss=403.949198 trend=1085618.5113 freq=182384.5779 diff=4.1918
+  epoch 3 batch 1000/1511 loss=407.234510 trend=1094455.4428 freq=183869.2095 diff=4.2255
+  epoch 3 batch 1050/1511 loss=409.029635 trend=1099284.2804 freq=184680.4810 diff=4.2438
+  epoch 3 batch 1100/1511 loss=400.559560 trend=1076504.8827 freq=180853.4676 diff=4.1567
+  epoch 3 batch 1150/1511 loss=399.267451 trend=1073030.7381 freq=180269.8131 diff=4.1434
+  epoch 3 batch 1200/1511 loss=396.024321 trend=1064308.8740 freq=178804.5280 diff=4.1100
+  epoch 3 batch 1250/1511 loss=394.028380 trend=1058942.0063 freq=177902.8895 diff=4.0894
+  epoch 3 batch 1300/1511 loss=398.835192 trend=1071870.7619 freq=180074.9723 diff=4.1387
+  epoch 3 batch 1350/1511 loss=408.779244 trend=1098615.7668 freq=184568.1581 diff=4.2407
+  epoch 3 batch 1400/1511 loss=409.190516 trend=1099722.9927 freq=184754.1546 diff=4.2449
+  epoch 3 batch 1450/1511 loss=405.315443 trend=1089302.1194 freq=183003.3901 diff=4.2050
+  epoch 3 batch 1500/1511 loss=404.989785 trend=1088426.6333 freq=182856.3182 diff=4.2016
+Epoch 3 | train_loss=405.313136 val_mse=0.447589 val_mae=0.331502 (62.6s)
+  Validation improved to 0.447589; saved checkpoint.
+  epoch 4 batch 50/1511 loss=370.932389 trend=996866.4613 freq=167472.8937 diff=3.8490
+  epoch 4 batch 100/1511 loss=321.514575 trend=863956.3911 freq=145143.9265 diff=3.3420
+  epoch 4 batch 150/1511 loss=382.823982 trend=1028846.1366 freq=172845.9024 diff=3.9710
+  epoch 4 batch 200/1511 loss=367.469614 trend=987550.8793 freq=165908.5358 diff=3.8137
+  epoch 4 batch 250/1511 loss=382.966044 trend=1029227.5255 freq=172910.3847 diff=3.9728
+  epoch 4 batch 300/1511 loss=372.707319 trend=1001637.7643 freq=168275.3755 diff=3.8677
+  epoch 4 batch 350/1511 loss=400.664906 trend=1076830.7315 freq=180908.0530 diff=4.1546
+  epoch 4 batch 400/1511 loss=387.672705 trend=1041889.2651 freq=175037.8165 diff=4.0212
+  epoch 4 batch 450/1511 loss=383.057806 trend=1029478.1616 freq=172952.7433 diff=3.9738
+  epoch 4 batch 500/1511 loss=389.244972 trend=1046117.0384 freq=175748.1534 diff=4.0373
+  epoch 4 batch 550/1511 loss=385.323740 trend=1035572.1164 freq=173976.6253 diff=3.9971
+  epoch 4 batch 600/1511 loss=382.056029 trend=1026783.1887 freq=172500.0983 diff=3.9636
+  epoch 4 batch 650/1511 loss=379.293070 trend=1019352.8917 freq=171251.7988 diff=3.9352
+  epoch 4 batch 700/1511 loss=369.867139 trend=994002.3662 freq=166992.8489 diff=3.8385
+  epoch 4 batch 750/1511 loss=384.751726 trend=1034033.6449 freq=173718.2081 diff=3.9913
+  epoch 4 batch 800/1511 loss=379.254115 trend=1019247.6650 freq=171234.0818 diff=3.9348
+  epoch 4 batch 850/1511 loss=381.663322 trend=1025727.5492 freq=172322.7459 diff=3.9595
+  epoch 4 batch 900/1511 loss=387.922366 trend=1042561.4287 freq=175150.8760 diff=4.0237
+  epoch 4 batch 950/1511 loss=393.526441 trend=1057634.0163 freq=177683.0631 diff=4.0812
+  epoch 4 batch 1000/1511 loss=401.036697 trend=1077833.1983 freq=181076.5842 diff=4.1582
+  epoch 4 batch 1050/1511 loss=398.423883 trend=1070806.7739 freq=179896.1005 diff=4.1313
+  epoch 4 batch 1100/1511 loss=398.292116 trend=1070453.0834 freq=179836.6714 diff=4.1299
+  epoch 4 batch 1150/1511 loss=397.103706 trend=1067256.8694 freq=179299.6260 diff=4.1177
+  epoch 4 batch 1200/1511 loss=402.185757 trend=1080925.9497 freq=181596.0505 diff=4.1698
+  epoch 4 batch 1250/1511 loss=397.970346 trend=1069588.8538 freq=179691.3671 diff=4.1265
+  epoch 4 batch 1300/1511 loss=399.775867 trend=1074445.5795 freq=180507.3221 diff=4.1449
+  epoch 4 batch 1350/1511 loss=396.875371 trend=1066645.5261 freq=179196.8815 diff=4.1151
+  epoch 4 batch 1400/1511 loss=399.473599 trend=1073633.4831 freq=180370.8776 diff=4.1418
+  epoch 4 batch 1450/1511 loss=401.892051 trend=1080137.9810 freq=181463.6685 diff=4.1666
+  epoch 4 batch 1500/1511 loss=404.973533 trend=1088425.9525 freq=182856.0683 diff=4.1982
+Epoch 4 | train_loss=404.479526 val_mse=0.451015 val_mae=0.332490 (50.3s)
+  EarlyStopping: 1/3
+  epoch 5 batch 50/1511 loss=247.342816 trend=664480.6443 freq=111632.1819 diff=2.5792
+  epoch 5 batch 100/1511 loss=309.076436 trend=830520.9142 freq=139527.5651 diff=3.2129
+  epoch 5 batch 150/1511 loss=337.913904 trend=908082.6027 freq=152557.8688 diff=3.5086
+  epoch 5 batch 200/1511 loss=333.787993 trend=896990.5712 freq=150694.4774 diff=3.4662
+  epoch 5 batch 250/1511 loss=341.193193 trend=916905.8267 freq=154040.3724 diff=3.5422
+  epoch 5 batch 300/1511 loss=354.381360 trend=952372.7057 freq=159998.6821 diff=3.6776
+  epoch 5 batch 350/1511 loss=384.952727 trend=1034595.4368 freq=173812.4072 diff=3.9916
+  epoch 5 batch 400/1511 loss=398.627775 trend=1071374.3996 freq=179991.3311 diff=4.1319
+  epoch 5 batch 450/1511 loss=412.004505 trend=1107349.5212 freq=186035.2914 diff=4.2693
+  epoch 5 batch 500/1511 loss=415.304144 trend=1116225.0981 freq=187526.3289 diff=4.3031
+  epoch 5 batch 550/1511 loss=402.284747 trend=1081209.5336 freq=181643.5675 diff=4.1694
+  epoch 5 batch 600/1511 loss=420.248305 trend=1129522.7794 freq=189760.3115 diff=4.3538
+  epoch 5 batch 650/1511 loss=424.049207 trend=1139745.6952 freq=191477.7454 diff=4.3928
+  epoch 5 batch 700/1511 loss=418.484849 trend=1124779.3098 freq=188963.3660 diff=4.3358
+  epoch 5 batch 750/1511 loss=420.251986 trend=1129533.4924 freq=189762.0297 diff=4.3538
+  epoch 5 batch 800/1511 loss=418.710807 trend=1125388.4187 freq=189065.6147 diff=4.3380
+  epoch 5 batch 850/1511 loss=411.534234 trend=1106087.6622 freq=185823.0809 diff=4.2643
+  epoch 5 batch 900/1511 loss=409.886787 trend=1101657.8057 freq=185078.8853 diff=4.2474
+  epoch 5 batch 950/1511 loss=419.531169 trend=1127596.2307 freq=189436.6080 diff=4.3464
+  epoch 5 batch 1000/1511 loss=424.504217 trend=1140971.4899 freq=191683.7125 diff=4.3975
+  epoch 5 batch 1050/1511 loss=417.243045 trend=1121443.0878 freq=188402.9039 diff=4.3229
+  epoch 5 batch 1100/1511 loss=418.503493 trend=1124833.1136 freq=188972.4127 diff=4.3358
+  epoch 5 batch 1150/1511 loss=423.947173 trend=1139474.2989 freq=191432.1924 diff=4.3917
+  epoch 5 batch 1200/1511 loss=422.762578 trend=1136288.6746 freq=190897.0235 diff=4.3796
+  epoch 5 batch 1250/1511 loss=418.710537 trend=1125390.7411 freq=189066.1468 diff=4.3379
+  epoch 5 batch 1300/1511 loss=414.018119 trend=1112770.9525 freq=186946.0141 diff=4.2897
+  epoch 5 batch 1350/1511 loss=410.589589 trend=1103550.0054 freq=185396.8700 diff=4.2545
+  epoch 5 batch 1400/1511 loss=404.758305 trend=1087866.5243 freq=182762.0215 diff=4.1947
+  epoch 5 batch 1450/1511 loss=406.142454 trend=1091589.1449 freq=183387.4478 diff=4.2089
+  epoch 5 batch 1500/1511 loss=404.966196 trend=1088425.4755 freq=182855.9339 diff=4.1968
+Epoch 5 | train_loss=405.289582 val_mse=0.448062 val_mae=0.329783 (78.2s)
+  EarlyStopping: 2/3
+  epoch 6 batch 50/1511 loss=420.204704 trend=1129413.8831 freq=189742.6128 diff=4.3533
+  epoch 6 batch 100/1511 loss=444.899875 trend=1195833.5322 freq=200901.3541 diff=4.6066
+  epoch 6 batch 150/1511 loss=428.456398 trend=1151610.8666 freq=193471.5077 diff=4.4375
+  epoch 6 batch 200/1511 loss=438.744997 trend=1179282.9520 freq=198120.4744 diff=4.5431
+  epoch 6 batch 250/1511 loss=435.037465 trend=1169311.9234 freq=196445.3317 diff=4.5050
+  epoch 6 batch 300/1511 loss=440.815377 trend=1184852.2185 freq=199055.9193 diff=4.5641
+  epoch 6 batch 350/1511 loss=420.238147 trend=1129510.9870 freq=189758.3595 diff=4.3529
+  epoch 6 batch 400/1511 loss=435.689759 trend=1171067.7997 freq=196739.7896 diff=4.5114
+  epoch 6 batch 450/1511 loss=433.979403 trend=1166467.8175 freq=195966.8884 diff=4.4939
+  epoch 6 batch 500/1511 loss=442.483308 trend=1189339.5528 freq=199809.4555 diff=4.5812
+  epoch 6 batch 550/1511 loss=440.460679 trend=1183901.1665 freq=198895.8117 diff=4.5604
+  epoch 6 batch 600/1511 loss=434.656221 trend=1168289.7868 freq=196273.1250 diff=4.5009
+  epoch 6 batch 650/1511 loss=425.947821 trend=1144868.0808 freq=192338.2121 diff=4.4115
+  epoch 6 batch 700/1511 loss=413.195429 trend=1110569.6484 freq=186575.9404 diff=4.2806
+  epoch 6 batch 750/1511 loss=410.369756 trend=1102969.3671 freq=185299.1268 diff=4.2517
+  epoch 6 batch 800/1511 loss=418.702064 trend=1125378.8789 freq=189064.0212 diff=4.3373
+  epoch 6 batch 850/1511 loss=415.884736 trend=1117801.5845 freq=187791.0551 diff=4.3083
+  epoch 6 batch 900/1511 loss=409.267919 trend=1100005.7718 freq=184801.2966 diff=4.2404
+  epoch 6 batch 950/1511 loss=411.148352 trend=1105063.1576 freq=185650.9092 diff=4.2597
+  epoch 6 batch 1000/1511 loss=406.660426 trend=1092993.4831 freq=183623.2136 diff=4.2136
+  epoch 6 batch 1050/1511 loss=407.305524 trend=1094727.3789 freq=183914.5521 diff=4.2203
+  epoch 6 batch 1100/1511 loss=407.891240 trend=1096302.2484 freq=184179.1620 diff=4.2263
+  epoch 6 batch 1150/1511 loss=407.833946 trend=1096148.1394 freq=184153.2984 diff=4.2257
+  epoch 6 batch 1200/1511 loss=405.261445 trend=1089229.2240 freq=182990.9264 diff=4.1993
+  epoch 6 batch 1250/1511 loss=414.750013 trend=1114748.7064 freq=187278.2951 diff=4.2968
+  epoch 6 batch 1300/1511 loss=412.110344 trend=1107648.8071 freq=186085.5018 diff=4.2697
+  epoch 6 batch 1350/1511 loss=412.411780 trend=1108459.9131 freq=186221.7621 diff=4.2728
+  epoch 6 batch 1400/1511 loss=414.457335 trend=1113961.4686 freq=187146.0022 diff=4.2938
+  epoch 6 batch 1450/1511 loss=408.695215 trend=1098464.0230 freq=184542.3950 diff=4.2346
+  epoch 6 batch 1500/1511 loss=404.962337 trend=1088424.4994 freq=182855.7419 diff=4.1963
+Epoch 6 | train_loss=405.285996 val_mse=0.448058 val_mae=0.330880 (49.9s)
+  EarlyStopping: 3/3
+Early stopping at epoch 6.
+
+Test | mse=0.546639 mae=0.372189 rmse=0.739351
