@@ -2,7 +2,7 @@
 
 Numbers below are **MSE / MAE on the test set**, mean across 3 seeds (2021/2022/2023). Lower is better. Cells render as `—` when no run has completed yet. Regenerate with `python scripts/update_results_table.py`.
 
-Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD) + remote ETTh1/ETTh2/Weather/Electricity/Traffic/f1weather + 190 ablation runs + P2: 24 VGLG+KD on Electricity + Traffic**.
+Currently aggregated: **mine 312+ runs (ETTm1+ETTm2+ablation) + 32 Chronos-ZS + 24 VGLG+KD + remote 14 baseline rows for ETTh1/ETTh2/Weather/Electricity/Traffic/f1weather**.
 
 ---
 
@@ -22,8 +22,8 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv** | **Ours / Conv** | 26k | 0.464 | 0.395 | 0.405 | 0.287 | 0.255 | 0.218 | 0.574 | 1.987 | 0.573 |
 | **MetaTSF-Attn** | **Ours / Attn** | 157k | 0.463 | 0.400 | 0.406 | 0.289 | 0.257 | 0.216 | 0.633 | 2.022 | 0.586 |
 | **MetaTSF-VGLG** | **Ours / VGLG** | 30k | 0.466 | 0.404 | 0.406 | 0.287 | 0.250 | 0.221 | 0.610 | 2.001 | 0.581 |
-| _Chronos-Bolt_ ZS  | Foundation         |        0 |   `—`   |   `—`   | 1.033 | 0.352 |   `—`   |   `—`   |   `—`   |   `—`   | 0.693 |
-| **MetaTSF-VGLG + KD** | **Ours + KD**      |      30k |   `—`   |   `—`   | 0.429 | 0.291 |   `—`   | 0.231 | 0.607 |   `—`   | 0.390 |
+| _Chronos-Bolt_ ZS | Foundation | 0 | 0.524 | 0.425 | 1.033 | 0.352 | 0.413 | 0.218 | 0.751 | 0.752 | 0.558 |
+| **MetaTSF-VGLG + KD** | **Ours + KD** | 30k | 0.463 | 0.389 | 0.429 | 0.291 | 0.257 | 0.231 | 0.607 | 0.570 | 0.405 |
 
 > Each cell is the mean MSE across all available (horizon, seed) runs for that (model, dataset). The four MetaTSF rows share an identical backbone — only the TokenMixer module differs.
 
@@ -45,6 +45,8 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv**   | 0.403 | 0.414 | 0.455 | 0.442 | 0.497 | 0.462 | 0.500 | 0.482 |
 | **MetaTSF-Attn**   | 0.401 | 0.414 | 0.450 | 0.442 | 0.492 | 0.463 | 0.507 | 0.489 |
 | **MetaTSF-VGLG**   | 0.405 | 0.416 | 0.457 | 0.445 | 0.498 | 0.464 | 0.503 | 0.485 |
+| _Chronos-Bolt_ ZS  | 0.487 | 0.404 | 0.511 | 0.437 | 0.564 | 0.463 | 0.536 | 0.471 |
+| **MetaTSF-VGLG + KD** | 0.401 | 0.410 | 0.456 | 0.442 | 0.500 | 0.462 | 0.496 | 0.481 |
 
 ## Table 1b — ETTh2 (per-horizon detail)
 
@@ -62,6 +64,8 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv**   | 0.307 | 0.354 | 0.393 | 0.404 | 0.433 | 0.438 | 0.447 | 0.455 |
 | **MetaTSF-Attn**   | 0.314 | 0.357 | 0.397 | 0.407 | 0.439 | 0.443 | 0.449 | 0.457 |
 | **MetaTSF-VGLG**   | 0.314 | 0.359 | 0.399 | 0.409 | 0.442 | 0.446 | 0.462 | 0.465 |
+| _Chronos-Bolt_ ZS  | 0.337 | 0.352 | 0.432 | 0.407 | 0.464 | 0.439 | 0.467 | 0.450 |
+| **MetaTSF-VGLG + KD** | 0.302 | 0.349 | 0.388 | 0.399 | 0.431 | 0.435 | 0.436 | 0.450 |
 
 ## Table 1c — ETTm1 (per-horizon detail)
 
@@ -117,6 +121,8 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv**   | 0.173 | 0.220 | 0.220 | 0.259 | 0.276 | 0.298 | 0.351 | 0.347 |
 | **MetaTSF-Attn**   | 0.175 | 0.222 | 0.223 | 0.261 | 0.278 | 0.300 | 0.353 | 0.349 |
 | **MetaTSF-VGLG**   | 0.165 | 0.213 | 0.215 | 0.255 | 0.271 | 0.295 | 0.350 | 0.346 |
+| _Chronos-Bolt_ ZS  | 0.345 | 0.270 | 0.407 | 0.321 | 0.407 | 0.342 | 0.494 | 0.395 |
+| **MetaTSF-VGLG + KD** | 0.167 | 0.215 | 0.225 | 0.264 | 0.280 | 0.302 | 0.355 | 0.350 |
 
 ## Table 1f — Electricity (per-horizon detail)
 
@@ -134,6 +140,8 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv**   | 0.197 | 0.299 | 0.204 | 0.303 | 0.222 | 0.321 | 0.250 | 0.341 |
 | **MetaTSF-Attn**   | 0.190 | 0.293 | 0.201 | 0.301 | 0.221 | 0.319 | 0.253 | 0.344 |
 | **MetaTSF-VGLG**   | 0.204 | 0.303 | 0.206 | 0.304 | 0.226 | 0.321 | 0.250 | 0.342 |
+| **MetaTSF-VGLG + KD** | 0.205 | 0.303 | 0.212 | 0.309 | 0.232 | 0.327 | 0.274 | 0.358 |
+| _Chronos-Bolt_ ZS  | 0.195 | 0.257 | 0.200 | 0.267 | 0.216 | 0.285 | 0.263 | 0.325 |
 | **MetaTSF-VGLG + KD** | 0.205 | 0.303 | 0.212 | 0.309 | 0.232 | 0.327 | 0.274 | 0.358 |
 
 ## Table 1g — Traffic (per-horizon detail)
@@ -153,6 +161,8 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Attn**   | 0.619 | 0.417 | 0.612 | 0.407 | 0.611 | 0.416 | 0.692 | 0.442 |
 | **MetaTSF-VGLG**   | 0.603 | 0.410 | 0.580 | 0.399 | 0.607 | 0.419 | 0.648 | 0.440 |
 | **MetaTSF-VGLG + KD** | 0.550 | 0.373 | 0.565 | 0.383 | 0.611 | 0.406 | 0.703 | 0.461 |
+| _Chronos-Bolt_ ZS  | 0.839 | 0.335 | 0.713 | 0.322 | 0.699 | 0.330 | 0.754 | 0.356 |
+| **MetaTSF-VGLG + KD** | 0.550 | 0.373 | 0.565 | 0.383 | 0.611 | 0.406 | 0.703 | 0.461 |
 
 ## Table 1h — f1weather (per-horizon detail)
 
@@ -170,6 +180,8 @@ Currently aggregated: **mine 312 runs (ETTm1 + ETTm2 + 8 Chronos-ZS + 24 VGLG+KD
 | **MetaTSF-Conv**   | 0.921 | 0.518 | 1.371 | 0.661 | 2.100 | 0.873 | 3.557 | 1.274 |
 | **MetaTSF-Attn**   | 0.953 | 0.530 | 1.403 | 0.669 | 2.136 | 0.880 | 3.594 | 1.279 |
 | **MetaTSF-VGLG**   | 0.928 | 0.518 | 1.380 | 0.659 | 2.113 | 0.872 | 3.583 | 1.277 |
+| _Chronos-Bolt_ ZS  | 0.595 | 0.363 | 0.704 | 0.455 | 0.775 | 0.528 | 0.936 | 0.616 |
+| **MetaTSF-VGLG + KD** | 0.377 | 0.347 | 0.503 | 0.432 | 0.624 | 0.510 | 0.774 | 0.597 |
 
 ---
 
