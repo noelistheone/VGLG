@@ -27,12 +27,15 @@ except ImportError:  # pragma: no cover
     _HAS_WANDB = False
 
 
-def _adjust_lr(epoch: int, base_lr: float, scheme: str) -> float:
+def _adjust_lr(epoch: int, base_lr: float, scheme: str, total_epochs: int = 10) -> float:
     if scheme == "type1":
         return base_lr * (0.5 ** ((epoch - 1) // 1))
     if scheme == "type3":
-        # cosine
-        return base_lr * 0.5 * (1 + np.cos(np.pi * epoch / 10))
+        # cosine over [0, total_epochs]. Without total_epochs the curve would wrap
+        # at epoch 10 and reflect back up — wrong for >10-epoch budgets.
+        return base_lr * 0.5 * (1 + np.cos(np.pi * epoch / total_epochs))
+    if scheme == "constant":
+        return base_lr
     return base_lr
 
 
@@ -175,7 +178,9 @@ def train(cfg: DictConfig) -> dict[str, float]:
             break
 
         # LR schedule
-        new_lr = _adjust_lr(epoch, cfg.train.learning_rate, cfg.train.lradj)
+        new_lr = _adjust_lr(
+            epoch, cfg.train.learning_rate, cfg.train.lradj, cfg.train.train_epochs
+        )
         for g in optimizer.param_groups:
             g["lr"] = new_lr
 
