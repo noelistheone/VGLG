@@ -46,8 +46,13 @@ def evaluate(
     device: str,
     pred_len: int,
 ) -> dict[str, float]:
+    # Streaming MSE / MAE / RMSE — accumulating per-batch sums avoids the
+    # 40+ GB CPU buffer that a full preds/trues concat needs for wide datasets
+    # (e.g. Traffic N=862 × h=720 × ~17k samples).
     model.eval()
-    preds, trues = [], []
+    sse = torch.zeros((), device=device, dtype=torch.float64)
+    sae = torch.zeros((), device=device, dtype=torch.float64)
+    n_elements = 0
     for batch_x, batch_y, batch_x_mark, batch_y_mark in loader:
         batch_x = batch_x.float().to(device)
         batch_y = batch_y.float().to(device)
@@ -61,12 +66,14 @@ def evaluate(
         out = model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
         out = out[:, -pred_len:, :]
         target = batch_y[:, -pred_len:, :]
-        preds.append(out.cpu().numpy())
-        trues.append(target.cpu().numpy())
+        diff = (out - target).double()
+        sse += (diff * diff).sum()
+        sae += diff.abs().sum()
+        n_elements += diff.numel()
 
-    preds = np.concatenate(preds, axis=0)
-    trues = np.concatenate(trues, axis=0)
-    return metric(preds, trues)
+    mse = sse.item() / n_elements
+    mae = sae.item() / n_elements
+    return {"mse": mse, "mae": mae, "rmse": float(np.sqrt(mse))}
 
 
 def train(cfg: DictConfig) -> dict[str, float]:
