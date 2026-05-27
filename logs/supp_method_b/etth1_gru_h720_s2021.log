@@ -1,0 +1,76 @@
+============================================================
+data:
+  name: etth1
+  root_path: data/ETT-small
+  data_path: ETTh1.csv
+  data_kind: ETTh
+  features: M
+  target: OT
+  freq: h
+  n_vars: 7
+model:
+  name: gru
+  type: rnn
+  d_model: 128
+  e_layers: 2
+  dropout: 0.1
+  revin: true
+  affine: true
+train:
+  name: default
+  seq_len: 96
+  label_len: 48
+  pred_len: 720
+  batch_size: 32
+  num_workers: 4
+  train_epochs: 10
+  patience: 3
+  learning_rate: 0.001
+  loss: mse
+  lradj: type1
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  gpu_resident_data: false
+  matmul_precision: highest
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+seed: 2021
+device: cuda
+project: vglg-tsf
+run_name: null
+tag: supp_method_b
+
+============================================================
+Loaded data | train=7825 val=2161 test=2161
+Built model: gru | params=242,270
+  epoch 1 batch 50/244 loss=0.700841
+  epoch 1 batch 100/244 loss=0.674461
+  epoch 1 batch 150/244 loss=0.664391
+  epoch 1 batch 200/244 loss=0.657346
+Epoch 1 | train_loss=0.652638 val_mse=1.589547 val_mae=0.863501 (2.7s)
+  Validation improved to 1.589547; saved checkpoint.
+  epoch 2 batch 50/244 loss=0.617756
+  epoch 2 batch 100/244 loss=0.612735
+  epoch 2 batch 150/244 loss=0.613256
+  epoch 2 batch 200/244 loss=0.612990
+Epoch 2 | train_loss=0.614043 val_mse=1.601692 val_mae=0.864467 (2.3s)
+  EarlyStopping: 1/3
+  epoch 3 batch 50/244 loss=0.602032
+  epoch 3 batch 100/244 loss=0.599357
+  epoch 3 batch 150/244 loss=0.597748
+  epoch 3 batch 200/244 loss=0.595141
+Epoch 3 | train_loss=0.593655 val_mse=1.633032 val_mae=0.878707 (2.3s)
+  EarlyStopping: 2/3
+  epoch 4 batch 50/244 loss=0.575580
+  epoch 4 batch 100/244 loss=0.568176
+  epoch 4 batch 150/244 loss=0.569674
+  epoch 4 batch 200/244 loss=0.570444
+Epoch 4 | train_loss=0.571351 val_mse=1.632401 val_mae=0.879298 (2.4s)
+  EarlyStopping: 3/3
+Early stopping at epoch 4.
+
+Test | mse=0.517509 mae=0.495882 rmse=0.719381
