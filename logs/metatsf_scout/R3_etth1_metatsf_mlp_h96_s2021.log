@@ -1,0 +1,127 @@
+============================================================
+data:
+  name: etth1
+  root_path: data/ETT-small
+  data_path: ETTh1.csv
+  data_kind: ETTh
+  features: M
+  target: OT
+  freq: h
+  n_vars: 7
+model:
+  name: metatsf_mlp
+  type: mlp
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: mlp
+    hidden_mult: 2
+    dropout: 0.1
+train:
+  name: default
+  seq_len: 96
+  label_len: 48
+  pred_len: 96
+  batch_size: 32
+  num_workers: 4
+  train_epochs: 30
+  patience: 8
+  learning_rate: 0.001
+  loss: mse
+  lradj: type3
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  gpu_resident_data: false
+  matmul_precision: highest
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+seed: 2021
+device: cuda
+project: vglg-tsf
+run_name: R3_etth1_metatsf_mlp_h96_s2021
+tag: metatsf_scout
+
+============================================================
+Loaded data | train=8449 val=2785 test=2785
+Built model: metatsf_mlp | params=157,144
+  epoch 1 batch 50/264 loss=0.418891
+  epoch 1 batch 100/264 loss=0.399222
+  epoch 1 batch 150/264 loss=0.385536
+  epoch 1 batch 200/264 loss=0.380924
+  epoch 1 batch 250/264 loss=0.375353
+Epoch 1 | train_loss=0.374476 val_mse=0.698873 val_mae=0.550989 (32.0s)
+  Validation improved to 0.698873; saved checkpoint.
+  epoch 2 batch 50/264 loss=0.348700
+  epoch 2 batch 100/264 loss=0.348667
+  epoch 2 batch 150/264 loss=0.348483
+  epoch 2 batch 200/264 loss=0.348802
+  epoch 2 batch 250/264 loss=0.347947
+Epoch 2 | train_loss=0.346238 val_mse=0.683159 val_mae=0.541928 (27.9s)
+  Validation improved to 0.683159; saved checkpoint.
+  epoch 3 batch 50/264 loss=0.333426
+  epoch 3 batch 100/264 loss=0.332794
+  epoch 3 batch 150/264 loss=0.334787
+  epoch 3 batch 200/264 loss=0.334754
+  epoch 3 batch 250/264 loss=0.335120
+Epoch 3 | train_loss=0.333843 val_mse=0.697437 val_mae=0.548848 (27.7s)
+  EarlyStopping: 1/8
+  epoch 4 batch 50/264 loss=0.311850
+  epoch 4 batch 100/264 loss=0.316994
+  epoch 4 batch 150/264 loss=0.319082
+  epoch 4 batch 200/264 loss=0.320158
+  epoch 4 batch 250/264 loss=0.322350
+Epoch 4 | train_loss=0.322398 val_mse=0.696458 val_mae=0.553035 (27.6s)
+  EarlyStopping: 2/8
+  epoch 5 batch 50/264 loss=0.315036
+  epoch 5 batch 100/264 loss=0.314081
+  epoch 5 batch 150/264 loss=0.311356
+  epoch 5 batch 200/264 loss=0.310782
+  epoch 5 batch 250/264 loss=0.311854
+Epoch 5 | train_loss=0.311971 val_mse=0.714920 val_mae=0.561754 (28.0s)
+  EarlyStopping: 3/8
+  epoch 6 batch 50/264 loss=0.305790
+  epoch 6 batch 100/264 loss=0.303473
+  epoch 6 batch 150/264 loss=0.302485
+  epoch 6 batch 200/264 loss=0.302082
+  epoch 6 batch 250/264 loss=0.301870
+Epoch 6 | train_loss=0.301813 val_mse=0.718052 val_mae=0.565529 (28.2s)
+  EarlyStopping: 4/8
+  epoch 7 batch 50/264 loss=0.291407
+  epoch 7 batch 100/264 loss=0.295668
+  epoch 7 batch 150/264 loss=0.295413
+  epoch 7 batch 200/264 loss=0.295508
+  epoch 7 batch 250/264 loss=0.295250
+Epoch 7 | train_loss=0.294702 val_mse=0.727944 val_mae=0.567238 (27.9s)
+  EarlyStopping: 5/8
+  epoch 8 batch 50/264 loss=0.286064
+  epoch 8 batch 100/264 loss=0.284683
+  epoch 8 batch 150/264 loss=0.285486
+  epoch 8 batch 200/264 loss=0.286436
+  epoch 8 batch 250/264 loss=0.285151
+Epoch 8 | train_loss=0.285080 val_mse=0.741460 val_mae=0.574247 (27.6s)
+  EarlyStopping: 6/8
+  epoch 9 batch 50/264 loss=0.269010
+  epoch 9 batch 100/264 loss=0.273552
+  epoch 9 batch 150/264 loss=0.275015
+  epoch 9 batch 200/264 loss=0.277448
+  epoch 9 batch 250/264 loss=0.277211
+Epoch 9 | train_loss=0.277247 val_mse=0.752991 val_mae=0.581352 (27.8s)
+  EarlyStopping: 7/8
+  epoch 10 batch 50/264 loss=0.275187
+  epoch 10 batch 100/264 loss=0.273153
+  epoch 10 batch 150/264 loss=0.273466
+  epoch 10 batch 200/264 loss=0.271827
+  epoch 10 batch 250/264 loss=0.270994
+Epoch 10 | train_loss=0.270704 val_mse=0.735858 val_mae=0.574077 (27.9s)
+  EarlyStopping: 8/8
+Early stopping at epoch 10.
+
+Test | mse=0.388053 mae=0.401849 rmse=0.622939

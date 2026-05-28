@@ -1,0 +1,209 @@
+/data/xinkaiz/conda_envs/vglg/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+============================================================
+data:
+  name: traffic
+  root_path: data/traffic
+  data_path: traffic.csv
+  data_kind: custom
+  features: M
+  target: OT
+  freq: h
+  n_vars: 862
+model:
+  name: metatsf_vglg
+  type: vglg
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: vglg
+    kernel_size: 31
+    rank: 8
+    dropout: 0.1
+    gate_hidden: 16
+    gate_entropy_reg: 0.0
+    gate_mode: learned
+train:
+  name: default
+  seq_len: 96
+  label_len: 48
+  pred_len: 720
+  batch_size: 32
+  num_workers: 4
+  train_epochs: 30
+  patience: 8
+  learning_rate: 0.001
+  loss: mse
+  lradj: type3
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  gpu_resident_data: false
+  matmul_precision: highest
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+seed: 2021
+device: cuda
+project: vglg-tsf
+run_name: null
+tag: metatsf_tuned
+
+============================================================
+Loaded data | train=11465 val=1037 test=2789
+Built model: metatsf_vglg | params=6,122,914
+  epoch 1 batch 50/358 loss=0.651815
+  epoch 1 batch 100/358 loss=0.546143
+  epoch 1 batch 150/358 loss=0.494328
+  epoch 1 batch 200/358 loss=0.461043
+  epoch 1 batch 250/358 loss=0.436445
+  epoch 1 batch 300/358 loss=0.417770
+  epoch 1 batch 350/358 loss=0.401832
+Epoch 1 | train_loss=0.399515 val_mse=0.528842 val_mae=0.385462 (30.6s)
+  Validation improved to 0.528842; saved checkpoint.
+  epoch 2 batch 50/358 loss=0.292388
+  epoch 2 batch 100/358 loss=0.286996
+  epoch 2 batch 150/358 loss=0.283321
+  epoch 2 batch 200/358 loss=0.279484
+  epoch 2 batch 250/358 loss=0.276073
+  epoch 2 batch 300/358 loss=0.273076
+  epoch 2 batch 350/358 loss=0.270110
+Epoch 2 | train_loss=0.269693 val_mse=0.502037 val_mae=0.352627 (28.4s)
+  Validation improved to 0.502037; saved checkpoint.
+  epoch 3 batch 50/358 loss=0.246438
+  epoch 3 batch 100/358 loss=0.244383
+  epoch 3 batch 150/358 loss=0.242735
+  epoch 3 batch 200/358 loss=0.241049
+  epoch 3 batch 250/358 loss=0.239792
+  epoch 3 batch 300/358 loss=0.238655
+  epoch 3 batch 350/358 loss=0.237614
+Epoch 3 | train_loss=0.237415 val_mse=0.492892 val_mae=0.343535 (28.0s)
+  Validation improved to 0.492892; saved checkpoint.
+  epoch 4 batch 50/358 loss=0.228072
+  epoch 4 batch 100/358 loss=0.226160
+  epoch 4 batch 150/358 loss=0.225607
+  epoch 4 batch 200/358 loss=0.225195
+  epoch 4 batch 250/358 loss=0.224620
+  epoch 4 batch 300/358 loss=0.223829
+  epoch 4 batch 350/358 loss=0.223112
+Epoch 4 | train_loss=0.223009 val_mse=0.486226 val_mae=0.341423 (30.0s)
+  Validation improved to 0.486226; saved checkpoint.
+  epoch 5 batch 50/358 loss=0.217532
+  epoch 5 batch 100/358 loss=0.217114
+  epoch 5 batch 150/358 loss=0.216524
+  epoch 5 batch 200/358 loss=0.215993
+  epoch 5 batch 250/358 loss=0.215234
+  epoch 5 batch 300/358 loss=0.214885
+  epoch 5 batch 350/358 loss=0.214307
+Epoch 5 | train_loss=0.214315 val_mse=0.488931 val_mae=0.339540 (28.5s)
+  EarlyStopping: 1/8
+  epoch 6 batch 50/358 loss=0.211404
+  epoch 6 batch 100/358 loss=0.211260
+  epoch 6 batch 150/358 loss=0.210886
+  epoch 6 batch 200/358 loss=0.210111
+  epoch 6 batch 250/358 loss=0.209789
+  epoch 6 batch 300/358 loss=0.209299
+  epoch 6 batch 350/358 loss=0.208774
+Epoch 6 | train_loss=0.208755 val_mse=0.484230 val_mae=0.337077 (27.2s)
+  Validation improved to 0.484230; saved checkpoint.
+  epoch 7 batch 50/358 loss=0.205653
+  epoch 7 batch 100/358 loss=0.205356
+  epoch 7 batch 150/358 loss=0.205098
+  epoch 7 batch 200/358 loss=0.204642
+  epoch 7 batch 250/358 loss=0.204281
+  epoch 7 batch 300/358 loss=0.204137
+  epoch 7 batch 350/358 loss=0.203999
+Epoch 7 | train_loss=0.203923 val_mse=0.484116 val_mae=0.337155 (28.9s)
+  Validation improved to 0.484116; saved checkpoint.
+  epoch 8 batch 50/358 loss=0.200564
+  epoch 8 batch 100/358 loss=0.200975
+  epoch 8 batch 150/358 loss=0.200947
+  epoch 8 batch 200/358 loss=0.200809
+  epoch 8 batch 250/358 loss=0.200641
+  epoch 8 batch 300/358 loss=0.200493
+  epoch 8 batch 350/358 loss=0.200312
+Epoch 8 | train_loss=0.200295 val_mse=0.480181 val_mae=0.332180 (28.1s)
+  Validation improved to 0.480181; saved checkpoint.
+  epoch 9 batch 50/358 loss=0.197551
+  epoch 9 batch 100/358 loss=0.197717
+  epoch 9 batch 150/358 loss=0.197446
+  epoch 9 batch 200/358 loss=0.197441
+  epoch 9 batch 250/358 loss=0.197284
+  epoch 9 batch 300/358 loss=0.197155
+  epoch 9 batch 350/358 loss=0.197009
+Epoch 9 | train_loss=0.197019 val_mse=0.480733 val_mae=0.333828 (29.3s)
+  EarlyStopping: 1/8
+  epoch 10 batch 50/358 loss=0.196831
+  epoch 10 batch 100/358 loss=0.196372
+  epoch 10 batch 150/358 loss=0.195733
+  epoch 10 batch 200/358 loss=0.195422
+  epoch 10 batch 250/358 loss=0.195285
+  epoch 10 batch 300/358 loss=0.195007
+  epoch 10 batch 350/358 loss=0.194821
+Epoch 10 | train_loss=0.194791 val_mse=0.482182 val_mae=0.335851 (32.1s)
+  EarlyStopping: 2/8
+  epoch 11 batch 50/358 loss=0.193013
+  epoch 11 batch 100/358 loss=0.193176
+  epoch 11 batch 150/358 loss=0.192950
+  epoch 11 batch 200/358 loss=0.192620
+  epoch 11 batch 250/358 loss=0.192882
+  epoch 11 batch 300/358 loss=0.192661
+  epoch 11 batch 350/358 loss=0.192591
+Epoch 11 | train_loss=0.192565 val_mse=0.482517 val_mae=0.333534 (28.1s)
+  EarlyStopping: 3/8
+  epoch 12 batch 50/358 loss=0.191848
+  epoch 12 batch 100/358 loss=0.190985
+  epoch 12 batch 150/358 loss=0.191076
+  epoch 12 batch 200/358 loss=0.190790
+  epoch 12 batch 250/358 loss=0.190643
+  epoch 12 batch 300/358 loss=0.190566
+  epoch 12 batch 350/358 loss=0.190301
+Epoch 12 | train_loss=0.190313 val_mse=0.483130 val_mae=0.335452 (29.0s)
+  EarlyStopping: 4/8
+  epoch 13 batch 50/358 loss=0.188785
+  epoch 13 batch 100/358 loss=0.188493
+  epoch 13 batch 150/358 loss=0.188554
+  epoch 13 batch 200/358 loss=0.188560
+  epoch 13 batch 250/358 loss=0.188562
+  epoch 13 batch 300/358 loss=0.188490
+  epoch 13 batch 350/358 loss=0.188421
+Epoch 13 | train_loss=0.188448 val_mse=0.486469 val_mae=0.337808 (27.8s)
+  EarlyStopping: 5/8
+  epoch 14 batch 50/358 loss=0.186997
+  epoch 14 batch 100/358 loss=0.187010
+  epoch 14 batch 150/358 loss=0.186979
+  epoch 14 batch 200/358 loss=0.186949
+  epoch 14 batch 250/358 loss=0.187027
+  epoch 14 batch 300/358 loss=0.186971
+  epoch 14 batch 350/358 loss=0.186813
+Epoch 14 | train_loss=0.186793 val_mse=0.483861 val_mae=0.332807 (27.2s)
+  EarlyStopping: 6/8
+  epoch 15 batch 50/358 loss=0.185470
+  epoch 15 batch 100/358 loss=0.185435
+  epoch 15 batch 150/358 loss=0.185423
+  epoch 15 batch 200/358 loss=0.185502
+  epoch 15 batch 250/358 loss=0.185384
+  epoch 15 batch 300/358 loss=0.185162
+  epoch 15 batch 350/358 loss=0.185173
+Epoch 15 | train_loss=0.185152 val_mse=0.487767 val_mae=0.336232 (29.9s)
+  EarlyStopping: 7/8
+  epoch 16 batch 50/358 loss=0.184559
+  epoch 16 batch 100/358 loss=0.184522
+  epoch 16 batch 150/358 loss=0.184117
+  epoch 16 batch 200/358 loss=0.183766
+  epoch 16 batch 250/358 loss=0.183796
+  epoch 16 batch 300/358 loss=0.183645
+  epoch 16 batch 350/358 loss=0.183642
+/data/xinkaiz/conda_envs/vglg/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Epoch 16 | train_loss=0.183658 val_mse=0.483956 val_mae=0.334431 (29.2s)
+  EarlyStopping: 8/8
+Early stopping at epoch 16.
+
+Test | mse=0.602085 mae=0.388910 rmse=0.775941

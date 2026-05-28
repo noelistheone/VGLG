@@ -1,0 +1,120 @@
+============================================================
+data:
+  name: etth1
+  root_path: data/ETT-small
+  data_path: ETTh1.csv
+  data_kind: ETTh
+  features: M
+  target: OT
+  freq: h
+  n_vars: 7
+model:
+  name: metatsf_mlp
+  type: mlp
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: mlp
+    hidden_mult: 2
+    dropout: 0.1
+train:
+  name: default
+  seq_len: 96
+  label_len: 48
+  pred_len: 336
+  batch_size: 32
+  num_workers: 4
+  train_epochs: 30
+  patience: 8
+  learning_rate: 0.001
+  loss: mse
+  lradj: type3
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  gpu_resident_data: false
+  matmul_precision: highest
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+seed: 2021
+device: cuda
+project: vglg-tsf
+run_name: null
+tag: metatsf_tuned
+
+============================================================
+Loaded data | train=8209 val=2545 test=2545
+Built model: metatsf_mlp | params=188,104
+  epoch 1 batch 50/256 loss=0.559972
+  epoch 1 batch 100/256 loss=0.526473
+  epoch 1 batch 150/256 loss=0.515586
+  epoch 1 batch 200/256 loss=0.508989
+  epoch 1 batch 250/256 loss=0.502300
+Epoch 1 | train_loss=0.501975 val_mse=1.289494 val_mae=0.759906 (30.7s)
+  Validation improved to 1.289494; saved checkpoint.
+  epoch 2 batch 50/256 loss=0.479549
+  epoch 2 batch 100/256 loss=0.476023
+  epoch 2 batch 150/256 loss=0.471947
+  epoch 2 batch 200/256 loss=0.469386
+  epoch 2 batch 250/256 loss=0.467789
+Epoch 2 | train_loss=0.467330 val_mse=1.331079 val_mae=0.771361 (26.7s)
+  EarlyStopping: 1/8
+  epoch 3 batch 50/256 loss=0.447686
+  epoch 3 batch 100/256 loss=0.451778
+  epoch 3 batch 150/256 loss=0.450749
+  epoch 3 batch 200/256 loss=0.450293
+  epoch 3 batch 250/256 loss=0.447597
+Epoch 3 | train_loss=0.447009 val_mse=1.351617 val_mae=0.777958 (28.1s)
+  EarlyStopping: 2/8
+  epoch 4 batch 50/256 loss=0.435870
+  epoch 4 batch 100/256 loss=0.432184
+  epoch 4 batch 150/256 loss=0.432340
+  epoch 4 batch 200/256 loss=0.431079
+  epoch 4 batch 250/256 loss=0.429939
+Epoch 4 | train_loss=0.430366 val_mse=1.368018 val_mae=0.782381 (27.4s)
+  EarlyStopping: 3/8
+  epoch 5 batch 50/256 loss=0.414102
+  epoch 5 batch 100/256 loss=0.413508
+  epoch 5 batch 150/256 loss=0.416036
+  epoch 5 batch 200/256 loss=0.416857
+  epoch 5 batch 250/256 loss=0.417505
+Epoch 5 | train_loss=0.417311 val_mse=1.332625 val_mae=0.777957 (26.6s)
+  EarlyStopping: 4/8
+  epoch 6 batch 50/256 loss=0.408501
+  epoch 6 batch 100/256 loss=0.404599
+  epoch 6 batch 150/256 loss=0.405015
+  epoch 6 batch 200/256 loss=0.406495
+  epoch 6 batch 250/256 loss=0.406982
+Epoch 6 | train_loss=0.406458 val_mse=1.365526 val_mae=0.784831 (26.4s)
+  EarlyStopping: 5/8
+  epoch 7 batch 50/256 loss=0.399097
+  epoch 7 batch 100/256 loss=0.398695
+  epoch 7 batch 150/256 loss=0.397414
+  epoch 7 batch 200/256 loss=0.396600
+  epoch 7 batch 250/256 loss=0.395703
+Epoch 7 | train_loss=0.395309 val_mse=1.341429 val_mae=0.780598 (26.4s)
+  EarlyStopping: 6/8
+  epoch 8 batch 50/256 loss=0.379126
+  epoch 8 batch 100/256 loss=0.383227
+  epoch 8 batch 150/256 loss=0.384212
+  epoch 8 batch 200/256 loss=0.385109
+  epoch 8 batch 250/256 loss=0.384986
+Epoch 8 | train_loss=0.385303 val_mse=1.368341 val_mae=0.789590 (26.5s)
+  EarlyStopping: 7/8
+  epoch 9 batch 50/256 loss=0.377314
+  epoch 9 batch 100/256 loss=0.378537
+  epoch 9 batch 150/256 loss=0.377758
+  epoch 9 batch 200/256 loss=0.376642
+  epoch 9 batch 250/256 loss=0.377101
+Epoch 9 | train_loss=0.377375 val_mse=1.365115 val_mae=0.788931 (26.8s)
+  EarlyStopping: 8/8
+Early stopping at epoch 9.
+
+Test | mse=0.482533 mae=0.451870 rmse=0.694646

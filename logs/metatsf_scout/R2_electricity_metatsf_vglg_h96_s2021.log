@@ -1,0 +1,204 @@
+============================================================
+data:
+  name: electricity
+  root_path: data/electricity
+  data_path: electricity.csv
+  data_kind: custom
+  features: M
+  target: OT
+  freq: h
+  n_vars: 321
+model:
+  name: metatsf_vglg
+  type: vglg
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: vglg
+    kernel_size: 31
+    rank: 8
+    dropout: 0.1
+    gate_hidden: 16
+    gate_entropy_reg: 0.0
+    gate_mode: learned
+train:
+  name: default
+  seq_len: 96
+  label_len: 48
+  pred_len: 96
+  batch_size: 32
+  num_workers: 4
+  train_epochs: 30
+  patience: 8
+  learning_rate: 0.0005
+  loss: mse
+  lradj: type3
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  gpu_resident_data: false
+  matmul_precision: highest
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+seed: 2021
+device: cuda
+project: vglg-tsf
+run_name: R2_electricity_metatsf_vglg_h96_s2021
+tag: metatsf_scout
+
+============================================================
+Loaded data | train=18221 val=2537 test=5165
+Built model: metatsf_vglg | params=879,114
+  epoch 1 batch 50/569 loss=0.483569
+  epoch 1 batch 100/569 loss=0.373291
+  epoch 1 batch 150/569 loss=0.323541
+  epoch 1 batch 200/569 loss=0.293565
+  epoch 1 batch 250/569 loss=0.273113
+  epoch 1 batch 300/569 loss=0.259250
+  epoch 1 batch 350/569 loss=0.248013
+  epoch 1 batch 400/569 loss=0.238541
+  epoch 1 batch 450/569 loss=0.230591
+  epoch 1 batch 500/569 loss=0.223377
+  epoch 1 batch 550/569 loss=0.217301
+Epoch 1 | train_loss=0.215329 val_mse=0.152351 val_mae=0.252855 (106.7s)
+  Validation improved to 0.152351; saved checkpoint.
+  epoch 2 batch 50/569 loss=0.152522
+  epoch 2 batch 100/569 loss=0.150231
+  epoch 2 batch 150/569 loss=0.147858
+  epoch 2 batch 200/569 loss=0.145693
+  epoch 2 batch 250/569 loss=0.143770
+  epoch 2 batch 300/569 loss=0.142026
+  epoch 2 batch 350/569 loss=0.140140
+  epoch 2 batch 400/569 loss=0.138318
+  epoch 2 batch 450/569 loss=0.136615
+  epoch 2 batch 500/569 loss=0.135116
+  epoch 2 batch 550/569 loss=0.133606
+Epoch 2 | train_loss=0.132963 val_mse=0.140224 val_mae=0.240295 (93.9s)
+  Validation improved to 0.140224; saved checkpoint.
+  epoch 3 batch 50/569 loss=0.114868
+  epoch 3 batch 100/569 loss=0.114038
+  epoch 3 batch 150/569 loss=0.113267
+  epoch 3 batch 200/569 loss=0.112365
+  epoch 3 batch 250/569 loss=0.111232
+  epoch 3 batch 300/569 loss=0.110340
+  epoch 3 batch 350/569 loss=0.109383
+  epoch 3 batch 400/569 loss=0.108665
+  epoch 3 batch 450/569 loss=0.107731
+  epoch 3 batch 500/569 loss=0.107015
+  epoch 3 batch 550/569 loss=0.106405
+Epoch 3 | train_loss=0.106152 val_mse=0.138015 val_mae=0.237231 (96.9s)
+  Validation improved to 0.138015; saved checkpoint.
+  epoch 4 batch 50/569 loss=0.097970
+  epoch 4 batch 100/569 loss=0.096731
+  epoch 4 batch 150/569 loss=0.096073
+  epoch 4 batch 200/569 loss=0.095483
+  epoch 4 batch 250/569 loss=0.094900
+  epoch 4 batch 300/569 loss=0.094335
+  epoch 4 batch 350/569 loss=0.094063
+  epoch 4 batch 400/569 loss=0.093570
+  epoch 4 batch 450/569 loss=0.093064
+  epoch 4 batch 500/569 loss=0.092520
+  epoch 4 batch 550/569 loss=0.092094
+Epoch 4 | train_loss=0.091912 val_mse=0.138891 val_mae=0.236938 (94.0s)
+  EarlyStopping: 1/8
+  epoch 5 batch 50/569 loss=0.084668
+  epoch 5 batch 100/569 loss=0.085272
+  epoch 5 batch 150/569 loss=0.085207
+  epoch 5 batch 200/569 loss=0.085422
+  epoch 5 batch 250/569 loss=0.085065
+  epoch 5 batch 300/569 loss=0.084894
+  epoch 5 batch 350/569 loss=0.084573
+  epoch 5 batch 400/569 loss=0.084152
+  epoch 5 batch 450/569 loss=0.083891
+  epoch 5 batch 500/569 loss=0.083572
+  epoch 5 batch 550/569 loss=0.083347
+Epoch 5 | train_loss=0.083253 val_mse=0.139863 val_mae=0.237268 (92.6s)
+  EarlyStopping: 2/8
+  epoch 6 batch 50/569 loss=0.080296
+  epoch 6 batch 100/569 loss=0.079810
+  epoch 6 batch 150/569 loss=0.079468
+  epoch 6 batch 200/569 loss=0.079254
+  epoch 6 batch 250/569 loss=0.079000
+  epoch 6 batch 300/569 loss=0.078748
+  epoch 6 batch 350/569 loss=0.078562
+  epoch 6 batch 400/569 loss=0.078220
+  epoch 6 batch 450/569 loss=0.078121
+  epoch 6 batch 500/569 loss=0.078068
+  epoch 6 batch 550/569 loss=0.077901
+Epoch 6 | train_loss=0.077856 val_mse=0.140494 val_mae=0.237907 (91.2s)
+  EarlyStopping: 3/8
+  epoch 7 batch 50/569 loss=0.074701
+  epoch 7 batch 100/569 loss=0.075265
+  epoch 7 batch 150/569 loss=0.075170
+  epoch 7 batch 200/569 loss=0.074834
+  epoch 7 batch 250/569 loss=0.074548
+  epoch 7 batch 300/569 loss=0.074550
+  epoch 7 batch 350/569 loss=0.074420
+  epoch 7 batch 400/569 loss=0.074311
+  epoch 7 batch 450/569 loss=0.074219
+  epoch 7 batch 500/569 loss=0.074107
+  epoch 7 batch 550/569 loss=0.074003
+Epoch 7 | train_loss=0.073993 val_mse=0.140391 val_mae=0.237835 (92.3s)
+  EarlyStopping: 4/8
+  epoch 8 batch 50/569 loss=0.072128
+  epoch 8 batch 100/569 loss=0.071888
+  epoch 8 batch 150/569 loss=0.071751
+  epoch 8 batch 200/569 loss=0.071507
+  epoch 8 batch 250/569 loss=0.071497
+  epoch 8 batch 300/569 loss=0.071456
+  epoch 8 batch 350/569 loss=0.071404
+  epoch 8 batch 400/569 loss=0.071309
+  epoch 8 batch 450/569 loss=0.071230
+  epoch 8 batch 500/569 loss=0.071237
+  epoch 8 batch 550/569 loss=0.071150
+Epoch 8 | train_loss=0.071089 val_mse=0.142908 val_mae=0.239228 (93.3s)
+  EarlyStopping: 5/8
+  epoch 9 batch 50/569 loss=0.068952
+  epoch 9 batch 100/569 loss=0.069529
+  epoch 9 batch 150/569 loss=0.069549
+  epoch 9 batch 200/569 loss=0.069158
+  epoch 9 batch 250/569 loss=0.069187
+  epoch 9 batch 300/569 loss=0.069147
+  epoch 9 batch 350/569 loss=0.069096
+  epoch 9 batch 400/569 loss=0.069032
+  epoch 9 batch 450/569 loss=0.069020
+  epoch 9 batch 500/569 loss=0.069088
+  epoch 9 batch 550/569 loss=0.068997
+Epoch 9 | train_loss=0.068956 val_mse=0.145412 val_mae=0.240590 (91.9s)
+  EarlyStopping: 6/8
+  epoch 10 batch 50/569 loss=0.067940
+  epoch 10 batch 100/569 loss=0.067812
+  epoch 10 batch 150/569 loss=0.067564
+  epoch 10 batch 200/569 loss=0.067645
+  epoch 10 batch 250/569 loss=0.067509
+  epoch 10 batch 300/569 loss=0.067536
+  epoch 10 batch 350/569 loss=0.067454
+  epoch 10 batch 400/569 loss=0.067367
+  epoch 10 batch 450/569 loss=0.067256
+  epoch 10 batch 500/569 loss=0.067224
+  epoch 10 batch 550/569 loss=0.067240
+Epoch 10 | train_loss=0.067254 val_mse=0.146293 val_mae=0.241405 (93.1s)
+  EarlyStopping: 7/8
+  epoch 11 batch 50/569 loss=0.066942
+  epoch 11 batch 100/569 loss=0.066584
+  epoch 11 batch 150/569 loss=0.066612
+  epoch 11 batch 200/569 loss=0.066284
+  epoch 11 batch 250/569 loss=0.066275
+  epoch 11 batch 300/569 loss=0.066135
+  epoch 11 batch 350/569 loss=0.066081
+  epoch 11 batch 400/569 loss=0.065975
+  epoch 11 batch 450/569 loss=0.065874
+  epoch 11 batch 500/569 loss=0.065803
+  epoch 11 batch 550/569 loss=0.065702
+Epoch 11 | train_loss=0.065679 val_mse=0.146497 val_mae=0.241074 (94.4s)
+  EarlyStopping: 8/8
+Early stopping at epoch 11.
+
+Test | mse=0.171284 mae=0.270775 rmse=0.413865
