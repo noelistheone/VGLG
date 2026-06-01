@@ -39,7 +39,7 @@ def _data_cfg(name: str):
 
 def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
               cache_dir: Path, batch_size: int = 8, fp16: bool = False,
-              shard_id: int = 0, num_shards: int = 1):
+              shard_id: int = 0, num_shards: int = 1, raw_teacher: bool = False):
     """Build a teacher cache, streaming each chunk to disk to avoid an
     intermediate full-tensor in RAM.
 
@@ -71,6 +71,24 @@ def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
     )
     n = len(ds)
     n_vars = ds.data_x.shape[-1]
+
+    # raw_teacher: Chronos-Bolt expects raw-scale series (it does its own internal
+    # instance-norm). Feeding it the globally-StandardScaler'd context is OUT OF
+    # DISTRIBUTION and yields garbage (electricity: MSE-vs-GT ~3.4e6, outputs up to
+    # 79337 in std-space). We invert the scaler to feed raw context, then map the
+    # raw teacher forecast back into the student's standardized space.
+    _mean = _scale = None
+    if raw_teacher:
+        import torch as _t
+        _mean = _t.tensor(ds.scaler.mean_, dtype=_t.float32, device="cuda")
+        _scale = _t.tensor(ds.scaler.scale_, dtype=_t.float32, device="cuda")
+
+    def _teach(bx):
+        if raw_teacher:
+            raw = bx * _scale + _mean
+            pred = teacher.predict(raw, horizon)
+            return (pred - _mean) / _scale
+        return teacher.predict(bx, horizon)
 
     ext = "npy" if fp16 else "pt"
     cache_path = cache_dir / f"{dataset}_h{horizon}_{split}.{ext}"
@@ -112,7 +130,7 @@ def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
         offset = 0
         for i, (batch_x, _, _, _) in enumerate(loader):
             batch_x = batch_x.float().cuda(non_blocking=True)
-            pred = teacher.predict(batch_x, horizon)                      # (B, pred, N)
+            pred = _teach(batch_x)                                        # (B, pred, N)
             np_pred = pred.detach().cpu().to(torch.float16).numpy()
             b = np_pred.shape[0]
             out_arr[offset:offset + b] = np_pred
@@ -143,7 +161,7 @@ def cache_one(teacher: ChronosTeacher, dataset: str, split: str, horizon: int,
         offset = 0
         for i, (batch_x, _, _, _) in enumerate(loader):
             batch_x = batch_x.float().cuda(non_blocking=True)
-            pred = teacher.predict(batch_x, horizon)
+            pred = _teach(batch_x)
             np_pred = pred.detach().cpu().float().numpy()
             b = np_pred.shape[0]
             out_arr[offset:offset + b] = np_pred
@@ -169,6 +187,10 @@ def main():
     ap.add_argument("--fp16", action="store_true",
                     help="Save as numpy fp16 (.npy) instead of torch fp32 (.pt). "
                          "Required for Electricity/Traffic h=720 to fit in 31GB RAM.")
+    ap.add_argument("--raw-teacher", action="store_true",
+                    help="Feed Chronos RAW (un-standardized) context (it does its own "
+                         "instance-norm); store predictions re-standardized to student space. "
+                         "Fixes the OOD-input bug that made the standardized cache garbage.")
     args = ap.parse_args()
 
     cache_dir = ROOT / args.cache_dir
@@ -182,7 +204,7 @@ def main():
     for dataset, split, horizon in product(args.datasets, args.splits, args.horizons):
         print(f"=== {dataset} {split} h={horizon} ===", flush=True)
         cache_one(teacher, dataset, split, horizon, cache_dir, args.batch_size,
-                  fp16=args.fp16)
+                  fp16=args.fp16, raw_teacher=args.raw_teacher)
 
 
 if __name__ == "__main__":

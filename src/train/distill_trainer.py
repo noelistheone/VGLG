@@ -120,9 +120,9 @@ def train(cfg: DictConfig) -> dict[str, float]:
     use_amp = cfg.train.use_amp and device.startswith("cuda")
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
-    l_mse_w = cfg.train.distill_lambda_mse
+    l_task_w = cfg.train.distill_lambda_task
+    l_soft_w = cfg.train.distill_lambda_soft
     l_tre_w = cfg.train.distill_lambda_trend
-    l_frq_w = cfg.train.distill_lambda_freq
     l_dif_w = cfg.train.distill_lambda_diff
     warmup = cfg.train.distill_warmup_epochs
 
@@ -130,7 +130,7 @@ def train(cfg: DictConfig) -> dict[str, float]:
         model.train()
         t0 = time.time()
         running = 0.0
-        running_kd = {"trend": 0.0, "freq": 0.0, "diff": 0.0}
+        running_kd = {"soft": 0.0, "trend": 0.0, "diff": 0.0}
         n_batches = 0
         for i, (batch_x, batch_y, batch_x_mark, batch_y_mark, t_pred) in enumerate(train_loader):
             batch_x = batch_x.float().to(device, non_blocking=True)
@@ -138,6 +138,13 @@ def train(cfg: DictConfig) -> dict[str, float]:
             batch_x_mark = batch_x_mark.float().to(device, non_blocking=True)
             batch_y_mark = batch_y_mark.float().to(device, non_blocking=True)
             t_pred = t_pred.float().to(device, non_blocking=True)
+            # Robustify against teacher outliers: a zero-shot Chronos teacher
+            # occasionally emits values far outside the data range (electricity
+            # has variates whose StandardScaler scale is up to 1.5e5, on which
+            # the teacher produces garbage). Standardized ground truth lives in
+            # ~[-8, 13], so clip the teacher target to [-15, 15]. Without this,
+            # a handful of cells dominate the KD MSE and diverge the student.
+            t_pred = t_pred.clamp_(-15.0, 15.0)
 
             dec_inp = torch.zeros_like(batch_y[:, -cfg.train.pred_len:, :])
             dec_inp = torch.cat(
@@ -150,12 +157,14 @@ def train(cfg: DictConfig) -> dict[str, float]:
                 out = out[:, -cfg.train.pred_len:, :]
                 target = batch_y[:, -cfg.train.pred_len:, :]
                 loss_mse = mse(out, target)
-                if epoch <= warmup:
-                    loss = loss_mse
-                    l_tre = l_frq = l_dif = torch.tensor(0.0, device=device)
-                else:
-                    l_tre, l_frq, l_dif = kd_loss_bundle(out, t_pred)
-                    loss = l_mse_w * loss_mse + l_tre_w * l_tre + l_frq_w * l_frq + l_dif_w * l_dif
+            # KD terms are computed in fp32 OUTSIDE autocast: the ortho-FFT and the
+            # squared-magnitude terms are numerically unsafe in fp16.
+            if epoch <= warmup:
+                loss = l_task_w * loss_mse
+                l_soft = l_tre = l_dif = torch.tensor(0.0, device=device)
+            else:
+                l_soft, l_tre, l_dif = kd_loss_bundle(out, t_pred)
+                loss = l_task_w * loss_mse + l_soft_w * l_soft + l_tre_w * l_tre + l_dif_w * l_dif
 
             scaler.scale(loss).backward()
             if cfg.train.gradient_clip > 0:
@@ -165,15 +174,15 @@ def train(cfg: DictConfig) -> dict[str, float]:
             scaler.update()
 
             running += loss.item()
+            running_kd["soft"] += l_soft.item()
             running_kd["trend"] += l_tre.item()
-            running_kd["freq"] += l_frq.item()
             running_kd["diff"] += l_dif.item()
             n_batches += 1
             if (i + 1) % cfg.train.log_interval == 0:
                 print(f"  epoch {epoch} batch {i+1}/{len(train_loader)} "
                       f"loss={running / n_batches:.6f} "
+                      f"soft={running_kd['soft']/n_batches:.4f} "
                       f"trend={running_kd['trend']/n_batches:.4f} "
-                      f"freq={running_kd['freq']/n_batches:.4f} "
                       f"diff={running_kd['diff']/n_batches:.4f}")
 
         train_loss = running / max(1, n_batches)
@@ -186,8 +195,8 @@ def train(cfg: DictConfig) -> dict[str, float]:
         if use_wandb:
             wandb.log({
                 "epoch": epoch, "train/loss": train_loss,
+                "train/kd_soft": running_kd["soft"] / max(1, n_batches),
                 "train/kd_trend": running_kd["trend"] / max(1, n_batches),
-                "train/kd_freq": running_kd["freq"] / max(1, n_batches),
                 "train/kd_diff": running_kd["diff"] / max(1, n_batches),
                 "val/mse": val_metrics["mse"], "val/mae": val_metrics["mae"],
                 "lr": optimizer.param_groups[0]["lr"], "epoch_time_s": elapsed,

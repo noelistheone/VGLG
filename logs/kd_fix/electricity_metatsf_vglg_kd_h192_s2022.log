@@ -1,0 +1,387 @@
+============================================================
+data:
+  name: electricity
+  root_path: data/electricity
+  data_path: electricity.csv
+  data_kind: custom
+  features: M
+  target: OT
+  freq: h
+  n_vars: 321
+model:
+  name: metatsf_vglg
+  type: vglg
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: vglg
+    kernel_size: 31
+    rank: 8
+    dropout: 0.1
+    gate_hidden: 16
+    gate_entropy_reg: 0.0
+    gate_mode: learned
+train:
+  name: distill
+  seq_len: 96
+  label_len: 48
+  pred_len: 192
+  batch_size: 16
+  num_workers: 4
+  train_epochs: 10
+  patience: 3
+  learning_rate: 0.0001
+  loss: mse
+  lradj: type1
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  gpu_resident_data: false
+  matmul_precision: highest
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+  teacher: amazon/chronos-bolt-base
+  teacher_cache_dir: cache/teacher_raw
+  distill_lambda_task: 1.0
+  distill_lambda_soft: 0.5
+  distill_lambda_trend: 0.1
+  distill_lambda_diff: 0.1
+  distill_warmup_epochs: 1
+seed: 2022
+device: cuda
+project: vglg-tsf
+run_name: electricity_metatsf_vglg_kd_h192_s2022
+tag: kd_fix
+
+============================================================
+Loaded data | train=18125 val=2441 test=5069
+Built model: metatsf_vglg | params=891,498
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 1 batch 50/1132 loss=0.866760 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 100/1132 loss=0.698061 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 150/1132 loss=0.596915 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 200/1132 loss=0.533276 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 250/1132 loss=0.487568 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 300/1132 loss=0.454383 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 350/1132 loss=0.429949 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 400/1132 loss=0.409704 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 450/1132 loss=0.392986 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 500/1132 loss=0.379544 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 550/1132 loss=0.367555 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 600/1132 loss=0.356851 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 650/1132 loss=0.347825 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 700/1132 loss=0.339462 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 750/1132 loss=0.331580 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 800/1132 loss=0.324549 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 850/1132 loss=0.318247 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 900/1132 loss=0.312649 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 950/1132 loss=0.307314 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 1000/1132 loss=0.302363 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 1050/1132 loss=0.298112 soft=0.0000 trend=0.0000 diff=0.0000
+  epoch 1 batch 1100/1132 loss=0.293871 soft=0.0000 trend=0.0000 diff=0.0000
+Epoch 1 | train_loss=0.291296 val_mse=0.183367 val_mae=0.281202 (202.3s)
+  Validation improved to 0.183367; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 2 batch 50/1132 loss=0.449245 soft=0.1268 trend=1.7363 diff=0.0495
+  epoch 2 batch 100/1132 loss=0.437024 soft=0.1218 trend=1.6607 diff=0.0483
+  epoch 2 batch 150/1132 loss=0.441636 soft=0.1232 trend=1.7042 diff=0.0474
+  epoch 2 batch 200/1132 loss=0.437716 soft=0.1215 trend=1.6830 diff=0.0465
+  epoch 2 batch 250/1132 loss=0.430412 soft=0.1185 trend=1.6333 diff=0.0457
+  epoch 2 batch 300/1132 loss=0.423565 soft=0.1157 trend=1.5881 diff=0.0449
+  epoch 2 batch 350/1132 loss=0.420983 soft=0.1147 trend=1.5782 diff=0.0442
+  epoch 2 batch 400/1132 loss=0.422330 soft=0.1152 trend=1.5974 diff=0.0436
+  epoch 2 batch 450/1132 loss=0.420991 soft=0.1145 trend=1.5929 diff=0.0430
+  epoch 2 batch 500/1132 loss=0.418394 soft=0.1135 trend=1.5814 diff=0.0423
+  epoch 2 batch 550/1132 loss=0.421263 soft=0.1144 trend=1.6071 diff=0.0418
+  epoch 2 batch 600/1132 loss=0.418810 soft=0.1133 trend=1.5933 diff=0.0413
+  epoch 2 batch 650/1132 loss=0.416703 soft=0.1124 trend=1.5816 diff=0.0407
+  epoch 2 batch 700/1132 loss=0.414789 soft=0.1117 trend=1.5735 diff=0.0402
+  epoch 2 batch 750/1132 loss=0.415250 soft=0.1118 trend=1.5825 diff=0.0398
+  epoch 2 batch 800/1132 loss=0.414711 soft=0.1116 trend=1.5829 diff=0.0393
+  epoch 2 batch 850/1132 loss=0.414485 soft=0.1115 trend=1.5876 diff=0.0388
+  epoch 2 batch 900/1132 loss=0.412725 soft=0.1109 trend=1.5811 diff=0.0384
+  epoch 2 batch 950/1132 loss=0.411847 soft=0.1105 trend=1.5800 diff=0.0379
+  epoch 2 batch 1000/1132 loss=0.410892 soft=0.1101 trend=1.5772 diff=0.0375
+  epoch 2 batch 1050/1132 loss=0.410484 soft=0.1099 trend=1.5788 diff=0.0371
+  epoch 2 batch 1100/1132 loss=0.409198 soft=0.1094 trend=1.5746 diff=0.0367
+Epoch 2 | train_loss=0.409012 val_mse=0.167263 val_mae=0.260055 (199.6s)
+  Validation improved to 0.167263; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 3 batch 50/1132 loss=0.412313 soft=0.1103 trend=1.7201 diff=0.0275
+  epoch 3 batch 100/1132 loss=0.394422 soft=0.1034 trend=1.5774 diff=0.0273
+  epoch 3 batch 150/1132 loss=0.388039 soft=0.1010 trend=1.5320 diff=0.0271
+  epoch 3 batch 200/1132 loss=0.388541 soft=0.1009 trend=1.5302 diff=0.0270
+  epoch 3 batch 250/1132 loss=0.386533 soft=0.1002 trend=1.5168 diff=0.0269
+  epoch 3 batch 300/1132 loss=0.386606 soft=0.1003 trend=1.5191 diff=0.0268
+  epoch 3 batch 350/1132 loss=0.384066 soft=0.0993 trend=1.5002 diff=0.0267
+  epoch 3 batch 400/1132 loss=0.386205 soft=0.1000 trend=1.5128 diff=0.0266
+  epoch 3 batch 450/1132 loss=0.387311 soft=0.1002 trend=1.5189 diff=0.0265
+  epoch 3 batch 500/1132 loss=0.388064 soft=0.1006 trend=1.5293 diff=0.0264
+  epoch 3 batch 550/1132 loss=0.386189 soft=0.1000 trend=1.5157 diff=0.0263
+  epoch 3 batch 600/1132 loss=0.384164 soft=0.0992 trend=1.5010 diff=0.0262
+  epoch 3 batch 650/1132 loss=0.384557 soft=0.0994 trend=1.5075 diff=0.0260
+  epoch 3 batch 700/1132 loss=0.385574 soft=0.0998 trend=1.5174 diff=0.0259
+  epoch 3 batch 750/1132 loss=0.385519 soft=0.0998 trend=1.5189 diff=0.0258
+  epoch 3 batch 800/1132 loss=0.385266 soft=0.0997 trend=1.5173 diff=0.0257
+  epoch 3 batch 850/1132 loss=0.384096 soft=0.0991 trend=1.5081 diff=0.0256
+  epoch 3 batch 900/1132 loss=0.384994 soft=0.0995 trend=1.5161 diff=0.0255
+  epoch 3 batch 950/1132 loss=0.386556 soft=0.1001 trend=1.5298 diff=0.0254
+  epoch 3 batch 1000/1132 loss=0.386377 soft=0.1000 trend=1.5287 diff=0.0253
+  epoch 3 batch 1050/1132 loss=0.385866 soft=0.0998 trend=1.5251 diff=0.0252
+  epoch 3 batch 1100/1132 loss=0.386779 soft=0.1001 trend=1.5325 diff=0.0251
+Epoch 3 | train_loss=0.386434 val_mse=0.163221 val_mae=0.255291 (197.8s)
+  Validation improved to 0.163221; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 4 batch 50/1132 loss=0.364563 soft=0.0913 trend=1.3824 diff=0.0227
+  epoch 4 batch 100/1132 loss=0.365605 soft=0.0920 trend=1.3964 diff=0.0227
+  epoch 4 batch 150/1132 loss=0.377512 soft=0.0966 trend=1.4858 diff=0.0228
+  epoch 4 batch 200/1132 loss=0.373986 soft=0.0953 trend=1.4587 diff=0.0228
+  epoch 4 batch 250/1132 loss=0.375238 soft=0.0957 trend=1.4661 diff=0.0228
+  epoch 4 batch 300/1132 loss=0.378648 soft=0.0972 trend=1.4971 diff=0.0227
+  epoch 4 batch 350/1132 loss=0.378110 soft=0.0970 trend=1.4968 diff=0.0226
+  epoch 4 batch 400/1132 loss=0.374992 soft=0.0959 trend=1.4758 diff=0.0226
+  epoch 4 batch 450/1132 loss=0.375937 soft=0.0963 trend=1.4832 diff=0.0225
+  epoch 4 batch 500/1132 loss=0.380707 soft=0.0981 trend=1.5234 diff=0.0225
+  epoch 4 batch 550/1132 loss=0.381032 soft=0.0982 trend=1.5270 diff=0.0225
+  epoch 4 batch 600/1132 loss=0.381756 soft=0.0984 trend=1.5307 diff=0.0224
+  epoch 4 batch 650/1132 loss=0.380698 soft=0.0979 trend=1.5213 diff=0.0224
+  epoch 4 batch 700/1132 loss=0.381551 soft=0.0983 trend=1.5287 diff=0.0224
+  epoch 4 batch 750/1132 loss=0.379865 soft=0.0976 trend=1.5142 diff=0.0224
+  epoch 4 batch 800/1132 loss=0.381335 soft=0.0981 trend=1.5262 diff=0.0223
+  epoch 4 batch 850/1132 loss=0.380106 soft=0.0977 trend=1.5179 diff=0.0223
+  epoch 4 batch 900/1132 loss=0.380082 soft=0.0976 trend=1.5164 diff=0.0223
+  epoch 4 batch 950/1132 loss=0.380479 soft=0.0978 trend=1.5201 diff=0.0222
+  epoch 4 batch 1000/1132 loss=0.380247 soft=0.0977 trend=1.5191 diff=0.0222
+  epoch 4 batch 1050/1132 loss=0.380042 soft=0.0977 trend=1.5184 diff=0.0222
+  epoch 4 batch 1100/1132 loss=0.379784 soft=0.0976 trend=1.5166 diff=0.0221
+Epoch 4 | train_loss=0.379987 val_mse=0.162106 val_mae=0.253718 (198.6s)
+  Validation improved to 0.162106; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 5 batch 50/1132 loss=0.373891 soft=0.0970 trend=1.5103 diff=0.0214
+  epoch 5 batch 100/1132 loss=0.380643 soft=0.0989 trend=1.5490 diff=0.0214
+  epoch 5 batch 150/1132 loss=0.378739 soft=0.0982 trend=1.5358 diff=0.0214
+  epoch 5 batch 200/1132 loss=0.378274 soft=0.0980 trend=1.5323 diff=0.0213
+  epoch 5 batch 250/1132 loss=0.375851 soft=0.0970 trend=1.5130 diff=0.0213
+  epoch 5 batch 300/1132 loss=0.377656 soft=0.0977 trend=1.5267 diff=0.0213
+  epoch 5 batch 350/1132 loss=0.376723 soft=0.0972 trend=1.5186 diff=0.0213
+  epoch 5 batch 400/1132 loss=0.373028 soft=0.0956 trend=1.4856 diff=0.0212
+  epoch 5 batch 450/1132 loss=0.373978 soft=0.0959 trend=1.4910 diff=0.0212
+  epoch 5 batch 500/1132 loss=0.373790 soft=0.0957 trend=1.4876 diff=0.0212
+  epoch 5 batch 550/1132 loss=0.376085 soft=0.0965 trend=1.5048 diff=0.0212
+  epoch 5 batch 600/1132 loss=0.375453 soft=0.0962 trend=1.4986 diff=0.0212
+  epoch 5 batch 650/1132 loss=0.378249 soft=0.0973 trend=1.5201 diff=0.0212
+  epoch 5 batch 700/1132 loss=0.376764 soft=0.0966 trend=1.5073 diff=0.0211
+  epoch 5 batch 750/1132 loss=0.378235 soft=0.0971 trend=1.5177 diff=0.0211
+  epoch 5 batch 800/1132 loss=0.377430 soft=0.0969 trend=1.5125 diff=0.0211
+  epoch 5 batch 850/1132 loss=0.377629 soft=0.0968 trend=1.5120 diff=0.0211
+  epoch 5 batch 900/1132 loss=0.377585 soft=0.0967 trend=1.5111 diff=0.0211
+  epoch 5 batch 950/1132 loss=0.377636 soft=0.0968 trend=1.5118 diff=0.0211
+  epoch 5 batch 1000/1132 loss=0.376647 soft=0.0964 trend=1.5050 diff=0.0210
+  epoch 5 batch 1050/1132 loss=0.376305 soft=0.0964 trend=1.5041 diff=0.0210
+  epoch 5 batch 1100/1132 loss=0.377151 soft=0.0967 trend=1.5117 diff=0.0210
+Epoch 5 | train_loss=0.377006 val_mse=0.161291 val_mae=0.252780 (204.4s)
+  Validation improved to 0.161291; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 6 batch 50/1132 loss=0.386803 soft=0.1007 trend=1.5930 diff=0.0209
+  epoch 6 batch 100/1132 loss=0.375477 soft=0.0971 trend=1.5209 diff=0.0207
+  epoch 6 batch 150/1132 loss=0.374406 soft=0.0963 trend=1.5062 diff=0.0207
+  epoch 6 batch 200/1132 loss=0.372020 soft=0.0954 trend=1.4886 diff=0.0207
+  epoch 6 batch 250/1132 loss=0.373847 soft=0.0955 trend=1.4921 diff=0.0206
+  epoch 6 batch 300/1132 loss=0.375413 soft=0.0962 trend=1.5066 diff=0.0206
+  epoch 6 batch 350/1132 loss=0.375204 soft=0.0960 trend=1.5027 diff=0.0206
+  epoch 6 batch 400/1132 loss=0.376084 soft=0.0964 trend=1.5115 diff=0.0206
+  epoch 6 batch 450/1132 loss=0.373078 soft=0.0952 trend=1.4878 diff=0.0205
+  epoch 6 batch 500/1132 loss=0.372685 soft=0.0950 trend=1.4846 diff=0.0205
+  epoch 6 batch 550/1132 loss=0.374314 soft=0.0957 trend=1.4975 diff=0.0205
+  epoch 6 batch 600/1132 loss=0.372965 soft=0.0952 trend=1.4872 diff=0.0205
+  epoch 6 batch 650/1132 loss=0.372997 soft=0.0953 trend=1.4905 diff=0.0205
+  epoch 6 batch 700/1132 loss=0.374287 soft=0.0958 trend=1.5004 diff=0.0205
+  epoch 6 batch 750/1132 loss=0.375387 soft=0.0962 trend=1.5084 diff=0.0205
+  epoch 6 batch 800/1132 loss=0.375158 soft=0.0961 trend=1.5069 diff=0.0205
+  epoch 6 batch 850/1132 loss=0.375673 soft=0.0962 trend=1.5086 diff=0.0205
+  epoch 6 batch 900/1132 loss=0.375587 soft=0.0962 trend=1.5085 diff=0.0205
+  epoch 6 batch 950/1132 loss=0.375382 soft=0.0962 trend=1.5069 diff=0.0205
+  epoch 6 batch 1000/1132 loss=0.375635 soft=0.0962 trend=1.5075 diff=0.0205
+  epoch 6 batch 1050/1132 loss=0.375628 soft=0.0962 trend=1.5079 diff=0.0205
+  epoch 6 batch 1100/1132 loss=0.375154 soft=0.0960 trend=1.5044 diff=0.0205
+Epoch 6 | train_loss=0.375516 val_mse=0.161093 val_mae=0.252529 (202.2s)
+  Validation improved to 0.161093; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 7 batch 50/1132 loss=0.366506 soft=0.0921 trend=1.4249 diff=0.0202
+  epoch 7 batch 100/1132 loss=0.364151 soft=0.0920 trend=1.4261 diff=0.0202
+  epoch 7 batch 150/1132 loss=0.371109 soft=0.0944 trend=1.4754 diff=0.0202
+  epoch 7 batch 200/1132 loss=0.370439 soft=0.0944 trend=1.4735 diff=0.0202
+  epoch 7 batch 250/1132 loss=0.369524 soft=0.0939 trend=1.4643 diff=0.0202
+  epoch 7 batch 300/1132 loss=0.366340 soft=0.0928 trend=1.4408 diff=0.0203
+  epoch 7 batch 350/1132 loss=0.363183 soft=0.0915 trend=1.4152 diff=0.0202
+  epoch 7 batch 400/1132 loss=0.370075 soft=0.0941 trend=1.4683 diff=0.0203
+  epoch 7 batch 450/1132 loss=0.372706 soft=0.0950 trend=1.4863 diff=0.0203
+  epoch 7 batch 500/1132 loss=0.371029 soft=0.0943 trend=1.4728 diff=0.0203
+  epoch 7 batch 550/1132 loss=0.372152 soft=0.0948 trend=1.4832 diff=0.0203
+  epoch 7 batch 600/1132 loss=0.372750 soft=0.0950 trend=1.4880 diff=0.0202
+  epoch 7 batch 650/1132 loss=0.372864 soft=0.0951 trend=1.4884 diff=0.0202
+  epoch 7 batch 700/1132 loss=0.373561 soft=0.0954 trend=1.4945 diff=0.0202
+  epoch 7 batch 750/1132 loss=0.373162 soft=0.0951 trend=1.4901 diff=0.0202
+  epoch 7 batch 800/1132 loss=0.372513 soft=0.0949 trend=1.4857 diff=0.0202
+  epoch 7 batch 850/1132 loss=0.373482 soft=0.0954 trend=1.4936 diff=0.0202
+  epoch 7 batch 900/1132 loss=0.374849 soft=0.0960 trend=1.5066 diff=0.0202
+  epoch 7 batch 950/1132 loss=0.375171 soft=0.0961 trend=1.5096 diff=0.0202
+  epoch 7 batch 1000/1132 loss=0.374450 soft=0.0958 trend=1.5027 diff=0.0202
+  epoch 7 batch 1050/1132 loss=0.373703 soft=0.0956 trend=1.4992 diff=0.0202
+  epoch 7 batch 1100/1132 loss=0.374765 soft=0.0960 trend=1.5071 diff=0.0202
+Epoch 7 | train_loss=0.375012 val_mse=0.160956 val_mae=0.252337 (202.7s)
+  Validation improved to 0.160956; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 8 batch 50/1132 loss=0.390227 soft=0.1014 trend=1.6160 diff=0.0202
+  epoch 8 batch 100/1132 loss=0.383261 soft=0.0995 trend=1.5754 diff=0.0202
+  epoch 8 batch 150/1132 loss=0.378148 soft=0.0981 trend=1.5482 diff=0.0201
+  epoch 8 batch 200/1132 loss=0.378152 soft=0.0977 trend=1.5409 diff=0.0202
+  epoch 8 batch 250/1132 loss=0.380577 soft=0.0983 trend=1.5549 diff=0.0202
+  epoch 8 batch 300/1132 loss=0.382690 soft=0.0992 trend=1.5714 diff=0.0202
+  epoch 8 batch 350/1132 loss=0.386369 soft=0.1007 trend=1.6050 diff=0.0202
+  epoch 8 batch 400/1132 loss=0.385900 soft=0.1005 trend=1.6006 diff=0.0202
+  epoch 8 batch 450/1132 loss=0.384216 soft=0.0998 trend=1.5852 diff=0.0202
+  epoch 8 batch 500/1132 loss=0.381481 soft=0.0986 trend=1.5600 diff=0.0202
+  epoch 8 batch 550/1132 loss=0.378524 soft=0.0974 trend=1.5341 diff=0.0202
+  epoch 8 batch 600/1132 loss=0.378785 soft=0.0975 trend=1.5378 diff=0.0202
+  epoch 8 batch 650/1132 loss=0.378936 soft=0.0975 trend=1.5369 diff=0.0202
+  epoch 8 batch 700/1132 loss=0.379061 soft=0.0976 trend=1.5399 diff=0.0201
+  epoch 8 batch 750/1132 loss=0.379212 soft=0.0976 trend=1.5401 diff=0.0202
+  epoch 8 batch 800/1132 loss=0.379339 soft=0.0976 trend=1.5407 diff=0.0201
+  epoch 8 batch 850/1132 loss=0.378147 soft=0.0971 trend=1.5316 diff=0.0201
+  epoch 8 batch 900/1132 loss=0.376780 soft=0.0967 trend=1.5226 diff=0.0201
+  epoch 8 batch 950/1132 loss=0.376740 soft=0.0967 trend=1.5233 diff=0.0201
+  epoch 8 batch 1000/1132 loss=0.376066 soft=0.0966 trend=1.5199 diff=0.0201
+  epoch 8 batch 1050/1132 loss=0.374960 soft=0.0961 trend=1.5110 diff=0.0201
+  epoch 8 batch 1100/1132 loss=0.373664 soft=0.0955 trend=1.4992 diff=0.0201
+Epoch 8 | train_loss=0.374654 val_mse=0.160916 val_mae=0.252243 (199.7s)
+  Validation improved to 0.160916; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 9 batch 50/1132 loss=0.390604 soft=0.1027 trend=1.6430 diff=0.0202
+  epoch 9 batch 100/1132 loss=0.379937 soft=0.0984 trend=1.5577 diff=0.0201
+  epoch 9 batch 150/1132 loss=0.381607 soft=0.0990 trend=1.5717 diff=0.0201
+  epoch 9 batch 200/1132 loss=0.381392 soft=0.0991 trend=1.5733 diff=0.0201
+  epoch 9 batch 250/1132 loss=0.379950 soft=0.0984 trend=1.5604 diff=0.0201
+  epoch 9 batch 300/1132 loss=0.374323 soft=0.0963 trend=1.5147 diff=0.0201
+  epoch 9 batch 350/1132 loss=0.376544 soft=0.0971 trend=1.5313 diff=0.0201
+  epoch 9 batch 400/1132 loss=0.379194 soft=0.0980 trend=1.5478 diff=0.0201
+  epoch 9 batch 450/1132 loss=0.377490 soft=0.0972 trend=1.5317 diff=0.0201
+  epoch 9 batch 500/1132 loss=0.376875 soft=0.0969 trend=1.5266 diff=0.0201
+  epoch 9 batch 550/1132 loss=0.377423 soft=0.0970 trend=1.5291 diff=0.0201
+  epoch 9 batch 600/1132 loss=0.377486 soft=0.0972 trend=1.5310 diff=0.0201
+  epoch 9 batch 650/1132 loss=0.378119 soft=0.0974 trend=1.5352 diff=0.0201
+  epoch 9 batch 700/1132 loss=0.376675 soft=0.0968 trend=1.5237 diff=0.0201
+  epoch 9 batch 750/1132 loss=0.375769 soft=0.0965 trend=1.5170 diff=0.0201
+  epoch 9 batch 800/1132 loss=0.375666 soft=0.0964 trend=1.5166 diff=0.0201
+  epoch 9 batch 850/1132 loss=0.374623 soft=0.0960 trend=1.5093 diff=0.0201
+  epoch 9 batch 900/1132 loss=0.373104 soft=0.0954 trend=1.4971 diff=0.0201
+  epoch 9 batch 950/1132 loss=0.372241 soft=0.0950 trend=1.4892 diff=0.0201
+  epoch 9 batch 1000/1132 loss=0.372556 soft=0.0952 trend=1.4917 diff=0.0201
+  epoch 9 batch 1050/1132 loss=0.373897 soft=0.0957 trend=1.5016 diff=0.0201
+  epoch 9 batch 1100/1132 loss=0.373807 soft=0.0956 trend=1.5014 diff=0.0201
+Epoch 9 | train_loss=0.374596 val_mse=0.160851 val_mae=0.252179 (199.3s)
+  Validation improved to 0.160851; saved checkpoint.
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+/home/xinkaiz/VGLG/src/data/distill_dataset.py:67: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:206.)
+  t_pred = torch.from_numpy(np.ascontiguousarray(self.teacher[i])).float()
+  epoch 10 batch 50/1132 loss=0.390519 soft=0.1030 trend=1.6461 diff=0.0202
+  epoch 10 batch 100/1132 loss=0.385577 soft=0.1008 trend=1.5996 diff=0.0202
+  epoch 10 batch 150/1132 loss=0.373925 soft=0.0961 trend=1.5064 diff=0.0201
+  epoch 10 batch 200/1132 loss=0.370688 soft=0.0948 trend=1.4789 diff=0.0201
+  epoch 10 batch 250/1132 loss=0.371925 soft=0.0953 trend=1.4931 diff=0.0201
+  epoch 10 batch 300/1132 loss=0.372724 soft=0.0955 trend=1.4990 diff=0.0200
+  epoch 10 batch 350/1132 loss=0.372734 soft=0.0956 trend=1.5018 diff=0.0200
+  epoch 10 batch 400/1132 loss=0.371818 soft=0.0953 trend=1.4942 diff=0.0200
+  epoch 10 batch 450/1132 loss=0.369991 soft=0.0946 trend=1.4791 diff=0.0200
+  epoch 10 batch 500/1132 loss=0.372199 soft=0.0953 trend=1.4935 diff=0.0200
+  epoch 10 batch 550/1132 loss=0.376427 soft=0.0969 trend=1.5250 diff=0.0201
+  epoch 10 batch 600/1132 loss=0.374515 soft=0.0960 trend=1.5084 diff=0.0201
+  epoch 10 batch 650/1132 loss=0.375247 soft=0.0963 trend=1.5146 diff=0.0201
+  epoch 10 batch 700/1132 loss=0.376920 soft=0.0969 trend=1.5273 diff=0.0201
+  epoch 10 batch 750/1132 loss=0.375657 soft=0.0964 trend=1.5169 diff=0.0201
+  epoch 10 batch 800/1132 loss=0.375571 soft=0.0963 trend=1.5154 diff=0.0201
+  epoch 10 batch 850/1132 loss=0.376250 soft=0.0966 trend=1.5214 diff=0.0201
+  epoch 10 batch 900/1132 loss=0.375523 soft=0.0964 trend=1.5166 diff=0.0200
+  epoch 10 batch 950/1132 loss=0.374930 soft=0.0961 trend=1.5113 diff=0.0200
+  epoch 10 batch 1000/1132 loss=0.375025 soft=0.0961 trend=1.5112 diff=0.0200
+  epoch 10 batch 1050/1132 loss=0.374179 soft=0.0958 trend=1.5048 diff=0.0200
+  epoch 10 batch 1100/1132 loss=0.375333 soft=0.0962 trend=1.5127 diff=0.0200
+Epoch 10 | train_loss=0.374341 val_mse=0.160846 val_mae=0.252173 (211.2s)
+  Validation improved to 0.160846; saved checkpoint.
+
+Test | mse=0.186534 mae=0.278629 rmse=0.431896

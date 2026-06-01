@@ -4,12 +4,12 @@ defaults:
 name: distill
 teacher: amazon/chronos-bolt-base
 teacher_cache_dir: cache/teacher
-# NOTE: lambdas calibrated to match KD term magnitudes to MSE.
-# Empirically on ETTm with seq_len=96 the raw scales are roughly
-#   mse ~ 0.3,  trend_kd ~ 160,  freq_kd ~ 24,  diff_kd ~ 0.03
-# so each weighted term contributes ~10% of MSE.
-distill_lambda_mse: 1.0
-distill_lambda_trend: 0.0002
-distill_lambda_freq: 0.001
-distill_lambda_diff: 1.0
-distill_warmup_epochs: 1     # epochs of pure MSE before activating KD
+# KD term weights. With ortho-normalized FFTs all KD terms are O(MSE) scale
+# (unlike the old un-normalized version where trend~160/freq~24 forced λ~1e-4
+# and caused divergence). soft = direct MSE(student, teacher) is the main KD
+# signal; trend/diff are smaller spectral/slope auxiliaries.
+distill_lambda_task: 1.0       # weight on the task MSE(student, ground-truth)
+distill_lambda_soft: 0.5       # direct soft-target MSE(student, teacher)
+distill_lambda_trend: 0.1      # low-freq Fourier (ortho) match
+distill_lambda_diff: 0.1       # first-difference / local-slope match
+distill_warmup_epochs: 1       # epochs of pure MSE before activating KD
