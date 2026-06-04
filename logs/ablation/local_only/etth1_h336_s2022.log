@@ -1,0 +1,128 @@
+============================================================
+data:
+  name: etth1
+  root_path: data/ETT-small
+  data_path: ETTh1.csv
+  data_kind: ETTh
+  features: M
+  target: OT
+  freq: h
+  n_vars: 7
+model:
+  name: metatsf_vglg
+  type: vglg
+  d_model: 128
+  n_layers: 2
+  dropout: 0.1
+  channel_mlp_mult: 2
+  revin: true
+  affine: true
+  mixer:
+    type: vglg
+    kernel_size: 31
+    rank: 8
+    dropout: 0.1
+    gate_hidden: 16
+    gate_entropy_reg: 0.0
+    gate_mode: fixed_1.0
+train:
+  name: default
+  seq_len: 96
+  label_len: 48
+  pred_len: 336
+  batch_size: 32
+  num_workers: 4
+  train_epochs: 10
+  patience: 3
+  learning_rate: 0.0001
+  loss: mse
+  lradj: type1
+  weight_decay: 0.0
+  gradient_clip: 1.0
+  use_amp: true
+  log_interval: 50
+  val_interval: 1
+  checkpoint_dir: checkpoints
+  use_wandb: false
+  wandb_project: vglg-tsf
+seed: 2022
+device: cuda
+project: vglg-tsf
+run_name: null
+tag: ablation_local_only
+
+============================================================
+Loaded data | train=8209 val=2545 test=2545
+Built model: metatsf_vglg | params=61,018
+  epoch 1 batch 50/256 loss=0.745311
+  epoch 1 batch 100/256 loss=0.717879
+  epoch 1 batch 150/256 loss=0.694368
+  epoch 1 batch 200/256 loss=0.671937
+  epoch 1 batch 250/256 loss=0.649027
+Epoch 1 | train_loss=0.646587 val_mse=1.420133 val_mae=0.819406 (2.5s)
+  Validation improved to 1.420133; saved checkpoint.
+  epoch 2 batch 50/256 loss=0.560709
+  epoch 2 batch 100/256 loss=0.555914
+  epoch 2 batch 150/256 loss=0.549829
+  epoch 2 batch 200/256 loss=0.546268
+  epoch 2 batch 250/256 loss=0.539825
+Epoch 2 | train_loss=0.539415 val_mse=1.341389 val_mae=0.784181 (2.3s)
+  Validation improved to 1.341389; saved checkpoint.
+  epoch 3 batch 50/256 loss=0.522367
+  epoch 3 batch 100/256 loss=0.521989
+  epoch 3 batch 150/256 loss=0.519865
+  epoch 3 batch 200/256 loss=0.516616
+  epoch 3 batch 250/256 loss=0.515556
+Epoch 3 | train_loss=0.515345 val_mse=1.322757 val_mae=0.775516 (2.2s)
+  Validation improved to 1.322757; saved checkpoint.
+  epoch 4 batch 50/256 loss=0.506623
+  epoch 4 batch 100/256 loss=0.509103
+  epoch 4 batch 150/256 loss=0.508369
+  epoch 4 batch 200/256 loss=0.507941
+  epoch 4 batch 250/256 loss=0.508689
+Epoch 4 | train_loss=0.508998 val_mse=1.316539 val_mae=0.772474 (2.3s)
+  Validation improved to 1.316539; saved checkpoint.
+  epoch 5 batch 50/256 loss=0.505467
+  epoch 5 batch 100/256 loss=0.505549
+  epoch 5 batch 150/256 loss=0.508155
+  epoch 5 batch 200/256 loss=0.505907
+  epoch 5 batch 250/256 loss=0.506761
+Epoch 5 | train_loss=0.506257 val_mse=1.314026 val_mae=0.771284 (2.3s)
+  Validation improved to 1.314026; saved checkpoint.
+  epoch 6 batch 50/256 loss=0.509210
+  epoch 6 batch 100/256 loss=0.504918
+  epoch 6 batch 150/256 loss=0.506182
+  epoch 6 batch 200/256 loss=0.506249
+  epoch 6 batch 250/256 loss=0.504970
+Epoch 6 | train_loss=0.505169 val_mse=1.312730 val_mae=0.770668 (2.3s)
+  Validation improved to 1.312730; saved checkpoint.
+  epoch 7 batch 50/256 loss=0.504702
+  epoch 7 batch 100/256 loss=0.506411
+  epoch 7 batch 150/256 loss=0.506874
+  epoch 7 batch 200/256 loss=0.504155
+  epoch 7 batch 250/256 loss=0.505211
+Epoch 7 | train_loss=0.504572 val_mse=1.312115 val_mae=0.770374 (2.3s)
+  Validation improved to 1.312115; saved checkpoint.
+  epoch 8 batch 50/256 loss=0.507027
+  epoch 8 batch 100/256 loss=0.505366
+  epoch 8 batch 150/256 loss=0.503774
+  epoch 8 batch 200/256 loss=0.502986
+  epoch 8 batch 250/256 loss=0.503758
+Epoch 8 | train_loss=0.504418 val_mse=1.311813 val_mae=0.770228 (2.3s)
+  Validation improved to 1.311813; saved checkpoint.
+  epoch 9 batch 50/256 loss=0.504547
+  epoch 9 batch 100/256 loss=0.505409
+  epoch 9 batch 150/256 loss=0.503462
+  epoch 9 batch 200/256 loss=0.503300
+  epoch 9 batch 250/256 loss=0.504480
+Epoch 9 | train_loss=0.504169 val_mse=1.311663 val_mae=0.770155 (2.4s)
+  Validation improved to 1.311663; saved checkpoint.
+  epoch 10 batch 50/256 loss=0.502425
+  epoch 10 batch 100/256 loss=0.499036
+  epoch 10 batch 150/256 loss=0.502473
+  epoch 10 batch 200/256 loss=0.504185
+  epoch 10 batch 250/256 loss=0.504114
+Epoch 10 | train_loss=0.504037 val_mse=1.311585 val_mae=0.770118 (2.2s)
+  Validation improved to 1.311585; saved checkpoint.
+
+Test | mse=0.505812 mae=0.469707 rmse=0.711205
